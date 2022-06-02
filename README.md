@@ -1,2 +1,3 @@
 # MatrixClock
-LED matrix clock with NTP. Work in progress.
+LED matrix clock with NTP.
+Work in progress.
