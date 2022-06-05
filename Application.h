@@ -13,7 +13,7 @@ private:
     unsigned long prev_frame_millis = 0;
 
     Screen* screens[2] = { new IntroScreen(SCR_INTRO), new WifiScreen(SCR_WIFI) };
-    Screen* activeScreen = screens[0];
+    Screen* active_screen = screens[0];
 
 public:
     Application();
@@ -25,4 +25,3 @@ public:
 };
 
 #endif
-

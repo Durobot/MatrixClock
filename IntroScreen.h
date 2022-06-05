@@ -6,13 +6,15 @@
 class IntroScreen : public Screen
 {
 protected:
-	int counter = 100;
-	Screen* wifiScreen = NULL;
+  // When this screen became active
+	unsigned long start_millis = 0;
+	//Screen* wifiScreen = NULL;
 
 public:
 	IntroScreen(unsigned int scr_id);
-	virtual void update();
+  ~IntroScreen();
+
+	virtual void update(unsigned long frame_millis, unsigned long prev_frame_millis);
 };
 
 #endif
-

@@ -10,8 +10,9 @@ protected:
 
 public:
 	WifiScreen(unsigned int scr_id);
-	virtual void update();
+  virtual ~WifiScreen();
+
+	virtual void update(unsigned long frame_millis, unsigned long prev_frame_millis);
 };
 
 #endif
-

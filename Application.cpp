@@ -19,8 +19,8 @@ void Application::update()
     this->prev_frame_millis = this->frame_millis;
     this->frame_millis = millis();
 
-    if(this->activeScreen != NULL)
-        this->activeScreen->update();
+    if(this->active_screen != NULL)
+        this->active_screen->update(this->frame_millis, this->prev_frame_millis);
 }
 
 Screen* Application::findScreen(unsigned int scr_id)
@@ -38,7 +38,6 @@ bool Application::switchToScreen(unsigned int scr_id)
     if(new_scr == NULL)
         return false;
 
-    this->activeScreen = new_scr;
+    this->active_screen = new_scr;
     return true;
 }
-

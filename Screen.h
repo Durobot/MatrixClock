@@ -9,9 +9,10 @@ protected:
 
 public:
 	Screen(unsigned int scr_id);
+  virtual ~Screen();
+
 	unsigned int getId();
-	virtual void update() = 0;
+	virtual void update(unsigned long frame_millis, unsigned long prev_frame_millis) = 0;
 };
 
 #endif
-
