@@ -1,16 +1,16 @@
-#ifndef _WIFISCREEN_H_
-#define _WIFISCREEN_H_
+#ifndef _CLOCKSCREEN_H_
+#define _CLOCKSCREEN_H_
 
 #include "Screen.h"
 
-class WifiScreen : public Screen
+class ClockScreen : public Screen
 {
 protected:
 	int bar;
 
 public:
-	WifiScreen(unsigned int scr_id);
-	virtual ~WifiScreen();
+	ClockScreen(unsigned int scr_id);
+	virtual ~ClockScreen();
 
 	virtual void update(unsigned long frame_millis, unsigned long prev_frame_millis);
 };

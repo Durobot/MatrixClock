@@ -5,6 +5,7 @@
 #include "Screen.h"
 #include "IntroScreen.h"
 #include "WifiScreen.h"
+#include "ClockScreen.h"
 
 class Application
 {
@@ -12,7 +13,7 @@ private:
     unsigned long frame_millis = 0;
     unsigned long prev_frame_millis = 0;
 
-    Screen* screens[2] = { new IntroScreen(SCR_INTRO), new WifiScreen(SCR_WIFI) };
+    Screen* screens[2] = { new IntroScreen(SCR_INTRO), new ClockScreen(SCR_CLOCK) };
     Screen* active_screen = screens[0];
 
 public:

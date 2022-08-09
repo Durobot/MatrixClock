@@ -1,6 +1,8 @@
 // Creates a second buffer for backround drawing (doubles the required RAM)
-#define PxMATRIX_double_buffer true
+#define PxMATRIX_double_buffer false
 #include <PxMatrix.h>
+
+#include "common.h"
 
 // Pins for LED MATRIX
 #ifdef ESP32
@@ -31,17 +33,15 @@ Ticker display_ticker;
 
 #endif
 
-#define MATRIX_WIDTH 64
-#define MATRIX_HEIGHT 32
-
 #include "Application.h"
+
 
 // This defines the 'on' time of the display is us. The larger this number,
 // the brighter the display. If too large the ESP will crash
 uint8_t display_draw_time = 20; //30-60 is usually fine
 
 //PxMATRIX display(32,16,P_LAT, P_OE,P_A,P_B,P_C);
-PxMATRIX display(64,32,P_LAT, P_OE,P_A,P_B,P_C,P_D);
+PxMATRIX display(64, 32, P_LAT, P_OE, P_A, P_B, P_C, P_D);
 //PxMATRIX display(64,64,P_LAT, P_OE,P_A,P_B,P_C,P_D,P_E);
 
 // Some standard colors
@@ -57,15 +57,6 @@ uint16_t myBLACK = display.color565(0, 0, 0);
 // ------------------------------------------
 
 Application app;
-
-// ------------------------------------------
-
-struct RgbPixel
-{
-  uint8_t r, g, b;
-};
-
-struct RgbPixel screen_buf[MATRIX_WIDTH][MATRIX_HEIGHT];
 
 // ------------------------------------------
 
@@ -115,7 +106,7 @@ void display_update_enable(bool is_enable)
 
 void setup()
 {
-  Serial.begin(9600);
+  Serial.begin(115200);
   // Define your display layout here, e.g. 1/8 step, and optional SPI pins begin(row_pattern, CLK, MOSI, MISO, SS)
   //display.begin(8);
   display.begin(16);
@@ -171,8 +162,28 @@ void setup()
   display_update_enable(true);
   //display.fillScreen(myMAGENTA);
   //display.showBuffer();
+  /*
+  mix.setWindow(0, 0, 14, 24);
+
+  RGB888 p = { .r = 255, .g = 0, .b = 0 };
+  //unsigned long start_time = micros();
+  //for(int i = 0; i < 1000; i++)
+  //  for(int j = 0; j < MATRIX_WIDTH * MATRIX_HEIGHT; j++)
+  //    mix.setNextPixel(p);
+  mix.printBackBuffer();
+  Serial.println("-------------------");
+  for(int y = 0; y < 24; y++)
+    for(int x = 0; x < 14; x++)
+      mix.blendNextPixel(p, 255);
+  mix.printBackBuffer();
+  //unsigned long end_time = micros();
+  //Serial.print("1000 screens worth of setNextPixel() calls took ");
+  //Serial.print(end_time - start_time);
+  //Serial.println(" microseconds");
+  */
 }
 
+/*
 int16_t x=0, dx=1;
 unsigned long ms_current  = 0;
 unsigned long ms_previous = 0;
@@ -184,15 +195,18 @@ uint8_t brightness = 255;
 
 #define ANIMATION_DELAY 20
 unsigned long ms_since_anim_step = 0;
+*/
 
 void loop()
 {
   app.update();
+
 /*
   ms_previous = ms_current;
   ms_current = millis();
   unsigned long ms_delta = ms_current - ms_previous;
-
+*/
+/*
   // Cycle brightness
   ms_since_bright_change += ms_delta;
   if(ms_since_bright_change >= FADE_FELAY_MS)
@@ -227,14 +241,36 @@ void loop()
     display.showBuffer();
   }
 */
-}
 
-void show_buffer()
-{
-	for(int y = 0; y < MATRIX_HEIGHT; y++)
-		for(int x = 0; x < MATRIX_WIDTH; x++)
+/*
+  RGB888 p = { .r = 255, .g = 0, .b = 0 };
+  unsigned long start_time = micros();
+  for(int i = 0; i < 1000; i++)
+    for(int j = 0; j < MATRIX_WIDTH * MATRIX_HEIGHT; j++)
+      mix.setNextPixel(p);
+  unsigned long end_time = micros();
+  Serial.print("1000 screens worth of setNextPixel() calls took ");
+  Serial.print(end_time - start_time);
+  Serial.println(" microseconds");
+*/
+/*
+  ms_since_anim_step += ms_delta;
+  if(ms_since_anim_step > ANIMATION_DELAY)
+  {
+    ms_since_anim_step = 0;
+    if(x + dx >= display.width() || x + dx < 0)
+      dx = -dx;
+    x += dx;
+
+//    display.clearDisplay();
+    display.fillScreen(myBLACK);
+    //display.drawFastVLine(x, 0, MATRIX_HEIGHT - 1, myMAGENTA);
+    for(uint16_t y = 0; y < MATRIX_HEIGHT; y++)
     {
-      RgbPixel tmp_pix = screen_buf[x][y];
-      display.drawPixelRGB888(x, y, tmp_pix.r, tmp_pix.g, tmp_pix.b);
+      //display.drawPixel(x, y, myMAGENTA);
+      display.drawPixelRGB888(x, y, 255, 0, 255);
     }
+    display.showBuffer(); 
+  }
+*/
 }
