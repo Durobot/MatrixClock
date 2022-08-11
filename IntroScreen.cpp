@@ -18,21 +18,21 @@ const struct RGB888 IntroScreen::clrs_light[] =
 {
   { .r = 0xFF, .g = 0x99, .b = 0x00 },
   { .r = 0xFF, .g = 0xC6, .b = 0x00 },
-  { .r = 1, .g = 1, .b = 1 },
-  { .r = 1, .g = 1, .b = 1 },
-  { .r = 1, .g = 1, .b = 1 },
-  { .r = 1, .g = 1, .b = 1 },
-  { .r = 1, .g = 1, .b = 1 }
+  { .r = 0x34, .g = 0xB6, .b = 0x71 },
+  { .r = 0x00, .g = 0x90, .b = 0x9d },
+  { .r = 0xC5, .g = 0x00, .b = 0x19 },
+  { .r = 0x92, .g = 0x00, .b = 0x63 },
+  { .r = 0x50, .g = 0x00, .b = 0xAA }
 };
 const struct RGB888 IntroScreen::clrs_dark[] =
 {
   { .r = 0x9b, .g = 0x5d, .b = 0x00 },
   { .r = 0xA1, .g = 0x7D, .b = 0x00 },
-  { .r = 1, .g = 1, .b = 1 },
-  { .r = 1, .g = 1, .b = 1 },
-  { .r = 1, .g = 1, .b = 1 },
-  { .r = 1, .g = 1, .b = 1 },
-  { .r = 1, .g = 1, .b = 1 }
+  { .r = 0x1D, .g = 0x6A, .b = 0x41 },
+  { .r = 0x00, .g = 0x41, .b = 0x46 },
+  { .r = 0x7E, .g = 0x00, .b = 0x10 },
+  { .r = 0x59, .g = 0x00, .b = 0x3C },
+  { .r = 0x2A, .g = 0x00, .b = 0x59 }
 };
 
 
