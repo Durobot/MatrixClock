@@ -1,3 +1,4 @@
+#include "WiFiType.h"
 #ifndef _APPLICATION_H_
 #define _APPLICATION_H_
 
@@ -13,7 +14,7 @@ private:
     unsigned long frame_millis = 0;
     unsigned long prev_frame_millis = 0;
 
-    Screen* screens[2] = { new IntroScreen(SCR_INTRO), new ClockScreen(SCR_CLOCK) };
+    Screen* screens[3] = { new IntroScreen(SCR_INTRO), new WifiScreen(SCR_WIFI), new ClockScreen(SCR_CLOCK) };
     Screen* active_screen = screens[0];
 
 public:

@@ -1,6 +1,6 @@
-// Creates a second buffer for backround drawing (doubles the required RAM)
-#define PxMATRIX_double_buffer false
 #include <PxMatrix.h>
+#include <WiFi.h>
+#include <ezTime.h>
 
 #include "common.h"
 
@@ -40,23 +40,17 @@ Ticker display_ticker;
 // the brighter the display. If too large the ESP will crash
 uint8_t display_draw_time = 20; //30-60 is usually fine
 
-//PxMATRIX display(32,16,P_LAT, P_OE,P_A,P_B,P_C);
-PxMATRIX display(64, 32, P_LAT, P_OE, P_A, P_B, P_C, P_D);
-//PxMATRIX display(64,64,P_LAT, P_OE,P_A,P_B,P_C,P_D,P_E);
-
-// Some standard colors
-uint16_t myRED = display.color565(255, 0, 0);
-uint16_t myGREEN = display.color565(0, 255, 0);
-uint16_t myBLUE = display.color565(0, 0, 255);
-uint16_t myWHITE = display.color565(255, 255, 255);
-uint16_t myYELLOW = display.color565(255, 255, 0);
-uint16_t myCYAN = display.color565(0, 255, 255);
-uint16_t myMAGENTA = display.color565(255, 0, 255);
-uint16_t myBLACK = display.color565(0, 0, 0);
+PxMATRIX display(SCREEN_WIDTH, SCREEN_HEIGHT, P_LAT, P_OE, P_A, P_B, P_C, P_D);
 
 // ------------------------------------------
 
 Application app;
+
+const char* wifi_ssid     = "MyWiFNetwork";
+const char* wifi_password = "WiFi Password";
+
+// ezTime
+Timezone my_TZ;
 
 // ------------------------------------------
 
@@ -104,14 +98,42 @@ void display_update_enable(bool is_enable)
 #endif
 }
 
+bool wifi_connect()
+{
+  Serial.print("Connecting to WiFi network ");
+  Serial.println(wifi_ssid);
+
+  WiFi.begin(wifi_ssid, wifi_password);
+
+  for(int i = 0; i < 8; i++) // 8 times 500 milliseconds = 4 seconds
+  {
+      delay(500);
+      if(WiFi.status() == WL_CONNECTED)
+      {
+        Serial.println("");
+        Serial.println("WiFi connected");
+        Serial.println("IP address: ");
+        Serial.println(WiFi.localIP());
+        return true;
+      }
+      Serial.print(".");
+  }
+
+  Serial.println("");
+  Serial.println("WiFi connection timed out");
+  return false;
+}
+
 void setup()
 {
+/*--------------------
   Serial.begin(115200);
   // Define your display layout here, e.g. 1/8 step, and optional SPI pins begin(row_pattern, CLK, MOSI, MISO, SS)
   //display.begin(8);
   display.begin(16);
   display.setFastUpdate(true);
   //display.begin(8, 14, 13, 12, 4);
+----------------------*/
 
   // Define multiplex implemention here {BINARY, STRAIGHT} (default is BINARY)
   //display.setMuxPattern(BINARY);
@@ -159,28 +181,26 @@ void setup()
   display.setCursor(2, 8);
   display.print("Time");
 */
-  display_update_enable(true);
-  //display.fillScreen(myMAGENTA);
-  //display.showBuffer();
-  /*
-  mix.setWindow(0, 0, 14, 24);
 
-  RGB888 p = { .r = 255, .g = 0, .b = 0 };
-  //unsigned long start_time = micros();
-  //for(int i = 0; i < 1000; i++)
-  //  for(int j = 0; j < MATRIX_WIDTH * MATRIX_HEIGHT; j++)
-  //    mix.setNextPixel(p);
-  mix.printBackBuffer();
-  Serial.println("-------------------");
-  for(int y = 0; y < 24; y++)
-    for(int x = 0; x < 14; x++)
-      mix.blendNextPixel(p, 255);
-  mix.printBackBuffer();
-  //unsigned long end_time = micros();
-  //Serial.print("1000 screens worth of setNextPixel() calls took ");
-  //Serial.print(end_time - start_time);
-  //Serial.println(" microseconds");
-  */
+  Serial.begin(115200);
+
+  delay(10);
+  //wifi_connect();
+  
+  // Define your display layout here, e.g. 1/8 step, and optional SPI pins begin(row_pattern, CLK, MOSI, MISO, SS)
+  display.begin(16);
+  display.flushDisplay();
+  display.setTextWrap(false);
+
+  display_update_enable(true);
+
+  // -- ezTime --
+  // Uncomment the line below to see what it does behind the scenes
+  //setDebug(INFO);
+  // By default, ezTime is set to poll pool.ntp.org about every 30 minutes
+  // (works if events() function is called periodically).
+  // Let's change this interval to 1 hour.
+  setInterval(60 * 60);
 }
 
 /*
@@ -200,6 +220,8 @@ unsigned long ms_since_anim_step = 0;
 void loop()
 {
   app.update();
+  // ezTime
+  events();
 
 /*
   ms_previous = ms_current;

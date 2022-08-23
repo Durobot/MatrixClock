@@ -5,8 +5,9 @@
 
 class ClockScreen : public Screen
 {
-protected:
-	int bar;
+private:
+  // When this screen became active
+  unsigned long start_millis = 0;
 
 public:
 	ClockScreen(unsigned int scr_id);

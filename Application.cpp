@@ -1,12 +1,9 @@
-//#include <cstddef>
 #include "Arduino.h"
 
 #include "Application.h"
 
 Application::Application()
-{
-    //screens = { new IntroScreen(1u), new WifiScreen(2u) };
-}
+{}
 
 Application::~Application()
 {
@@ -20,7 +17,7 @@ void Application::update()
     this->frame_millis = millis();
 
     if(this->active_screen != NULL)
-        this->active_screen->update(this->frame_millis, this->prev_frame_millis);
+      this->active_screen->update(this->frame_millis, this->prev_frame_millis);
 }
 
 Screen* Application::findScreen(unsigned int scr_id)

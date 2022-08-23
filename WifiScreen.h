@@ -5,8 +5,11 @@
 
 class WifiScreen : public Screen
 {
-protected:
-	int bar;
+private:
+  // When this screen became active
+  unsigned long start_millis = 0;
+  // End of our attempt to connect to wifi network
+  unsigned long wifi_result_millis = 0;
 
 public:
 	WifiScreen(unsigned int scr_id);
