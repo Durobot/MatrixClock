@@ -26,6 +26,8 @@ protected:
 
   // Draw slanted (similarly to / ) bi-colored line
   static void drawLine(int16_t x, uint16_t clr_idx);
+  // Re-initialize all fields, preparing the screen to go (again)
+  void resetScreen();
 
 public:
 	IntroScreen(unsigned int scr_id);

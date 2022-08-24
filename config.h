@@ -11,6 +11,7 @@
 #define TZ_OLSON "Europe/Chisinau"
 // Seconds between NTP (time sync) requests
 #define EZTIME_NTP_INTERVAL (60 * 60)
+
 // How many milliseconds the intro screen stays on.
 // Must be >= 255 to allow for fade to black.
 #define INTO_SCR_MILLIS        3255

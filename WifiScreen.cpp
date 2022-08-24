@@ -111,29 +111,46 @@ void WifiScreen::update(unsigned long frame_millis, unsigned long prev_frame_mil
   }
 
   unsigned long after_wifi_result_millis = frame_millis - this->wifi_result_millis;
-  if(after_wifi_result_millis >= WIFI_SCR_RESULT_MILLIS)
+  if(WiFi.isConnected())
   {
-    this->start_millis = this->wifi_result_millis = 0;
-    app.switchToScreen(SCR_CLOCK);
-    return;
-  }
+    if(after_wifi_result_millis >= WIFI_SCR_RESULT_MILLIS)
+    {
+      this->start_millis = this->wifi_result_millis = 0;
+      app.switchToScreen(SCR_CLOCK); // Proceed to the clock screen
+      return;
+    }
 
-  // Fade to black
-  if(after_wifi_result_millis >= WIFI_SCR_RESULT_MILLIS - 510)
+    // Fade to black
+    if(after_wifi_result_millis >= WIFI_SCR_RESULT_MILLIS - 510)
+    {
+      display.setBrightness((WIFI_SCR_RESULT_MILLIS - after_wifi_result_millis) >> 1);
+      return;
+    }
+  }
+  else // WiFi not connected, show the error longer than WIFI_SCR_RESULT_MILLIS
   {
-    display.setBrightness((WIFI_SCR_RESULT_MILLIS - after_wifi_result_millis) >> 1);
-    return;
-  }
+    if(after_wifi_result_millis >= WIFI_SCR_RESULT_MILLIS + 2000)
+    {
+      this->start_millis = this->wifi_result_millis = 0;
+      app.switchToScreen(SCR_INTRO); // Go back to intro screen
+      return;
+    }
 
-  // Fade in
-  /*
-  if(after_wifi_result_millis <= 255)
-  {  
-    display.setBrightness(after_wifi_result_millis);
-    return;
-  }
+    // Fade to black
+    if(after_wifi_result_millis >= WIFI_SCR_RESULT_MILLIS + 2000 - 510)
+    {
+      display.setBrightness((WIFI_SCR_RESULT_MILLIS + 2000 - after_wifi_result_millis) >> 1);
+      return;
+    }
 
-  // In case we miss the mark when fading in
-  display.setBrightness(255);
-  */
+    // Fade in
+    if(after_wifi_result_millis <= 255)
+    {
+      display.setBrightness(after_wifi_result_millis);
+      return;
+    }
+
+    // In case we miss the mark when fading in
+    display.setBrightness(255);
+  }
 }

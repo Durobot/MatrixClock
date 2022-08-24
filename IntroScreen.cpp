@@ -65,6 +65,7 @@ void IntroScreen::update(unsigned long frame_millis, unsigned long prev_frame_mi
   if(this->start_millis == 0)
   {
     this->start_millis = frame_millis; // Initialize
+    display.clearDisplay();
     display.setBrightness(255); // Set the brightness of the panel (max is 255)
   }
   else
@@ -72,7 +73,7 @@ void IntroScreen::update(unsigned long frame_millis, unsigned long prev_frame_mi
     unsigned long scr_life_millis = frame_millis - this->start_millis;
     if(scr_life_millis >= INTO_SCR_MILLIS)
     {
-      this->start_millis = 0;
+      this->resetScreen();
       app.switchToScreen(SCR_WIFI);
       return;
     }
@@ -130,4 +131,14 @@ void IntroScreen::drawLine(int16_t x, uint16_t clr_idx)
     if(y & 0x01)
       x--;
   }
+}
+
+// Re-initialize all fields, preparing the screen to go (again)
+void IntroScreen::resetScreen()
+{
+  this->start_millis = 0;
+  this->line_move_counter =
+    this->last_line_idx = 0;
+  for(int i = 0; i < LINE_COUNT; i++)
+    this->lines_x[i] = 0;
 }

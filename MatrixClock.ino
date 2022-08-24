@@ -101,6 +101,10 @@ bool wifi_connect()
   Serial.print("Connecting to WiFi network ");
   Serial.println(WIFI_SSID);
 
+  if(WiFi.isConnected())
+    WiFi.disconnect();
+
+  WiFi.setAutoReconnect(true);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
   for(int i = 0; i < 8; i++) // 8 times 500 milliseconds = 4 seconds
