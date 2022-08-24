@@ -1,5 +1,3 @@
-#include "stdint.h"
-//#include "WiFiType.h"
 #include <Arduino.h>
 #include <PxMatrix.h>
 #include <ezTime.h>

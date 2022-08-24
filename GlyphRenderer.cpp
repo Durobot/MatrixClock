@@ -1,6 +1,6 @@
-#include "GlyphRenderer.h"
-
 #include <PxMatrix.h>
+
+#include "GlyphRenderer.h"
 
 extern PxMATRIX display; // In MatrixClock.ino
 

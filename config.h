@@ -11,12 +11,13 @@
 #define TZ_OLSON "Europe/Chisinau"
 // Seconds between NTP (time sync) requests
 #define EZTIME_NTP_INTERVAL (60 * 60)
-// How many milliseconds the intro screen stays on
+// How many milliseconds the intro screen stays on.
+// Must be >= 255 to allow for fade to black.
 #define INTO_SCR_MILLIS        3255
 // How many milliseconds the WiFi connection results stay on
-// (while also performing NTP sync, so if NTP takes more time
-//  than this, the WiFi connection results screen )
-#define WIFI_SCR_RESULT_MILLIS 3000
+// after WiFi connection attempt and NTP sync.
+// Must be >= 510 to allow for fade to black.
+#define WIFI_SCR_RESULT_MILLIS 510
 
 
 #endif
