@@ -4,15 +4,15 @@
 #include <ezTime.h>
 
 #include "common.h"
+#include "config.h"
 #include "Application.h"
 #include "WifiScreen.h"
 #include "GlyphRenderer.h"
 
-#define WIFI_RESULT_MILLIS 3000
 
 extern Application app;
 extern PxMATRIX display;
-extern const char* wifi_ssid;
+//extern const char* wifi_ssid;
 extern Timezone my_TZ;
 
 bool wifi_connect(); // In MatrixClock.ino
@@ -53,31 +53,43 @@ void WifiScreen::update(unsigned long frame_millis, unsigned long prev_frame_mil
     //
     const struct RGB888 yellow_clr = { .r = 192, .g = 192, .b = 0 };
     // SSID string X position - centered
-    int ssid_x_pos = (SCREEN_WIDTH >> 1) - (strlen(wifi_ssid) >> 1) * 6;
+    int ssid_x_pos = (SCREEN_WIDTH >> 1) - ((sizeof WIFI_SSID - 1) >> 1) * 6;
     if(ssid_x_pos < 0)
       ssid_x_pos = 0;
     if(wifi_result)
     {
       Serial.print("Wifi ");
-      Serial.print(wifi_ssid);
+      Serial.print(WIFI_SSID);
       Serial.println(" connected");
 
       const struct RGB888 green_clr = { .r = 22, .g = 192, .b = 0 };
-      GlyphRenderer::drawSmallString("Wifi", 20, 4, green_clr);
-      GlyphRenderer::drawSmallString(wifi_ssid, ssid_x_pos, 12, yellow_clr);
-      GlyphRenderer::drawSmallString("connected", 4, 20, green_clr);
+      GlyphRenderer::drawSmallString("Wifi", 20, 0, green_clr);
+      GlyphRenderer::drawSmallString(WIFI_SSID, ssid_x_pos, 8, yellow_clr);
+      GlyphRenderer::drawSmallString("connected", 4, 16, green_clr);
+      display.drawPixelRGB888(60, 22, green_clr.r, green_clr.g, green_clr.b);
+      const struct RGB888 grey_clr = { .r = 168, .g = 168, .b = 168 };
+      GlyphRenderer::drawSmallString("Time", 2, 24, grey_clr);
+      GlyphRenderer::drawSmallString("sync.", 32, 24, grey_clr);
+      display.drawPixelRGB888(61, 30, grey_clr.r, grey_clr.g, grey_clr.b);
 
       // -- ezTime --
       // Uncomment the line below to see what it does behind the scenes
       // setDebug(INFO);
-      waitForSync(); // Shouldn't take long
+      waitForSync(); // Shouldn't take long :)
 
       this->wifi_result_millis = millis(); // wifi_connect() + waitForSync() normally take several seconds
 
       // Provide official timezone names
       // https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-      my_TZ.setLocation(F("Europe/Chisinau"));
-      Serial.print(F("Chisinau:     "));
+      // setLocation() gets Posix TZ string from timezoned.rop.nl ,
+      // which is ezTime's own service.
+      my_TZ.setLocation(F(TZ_OLSON));
+      // Setting the Posix string directly removes dependency on timezoned.rop.nl,
+      // but if TZ definition changes, we're stuck with the old definition.
+      //my_TZ.setPosix(F("EET-2EEST,M3.5.0,M10.5.0/3"));
+
+      Serial.print(F(TZ_OLSON));
+      Serial.print(F(" : "));
       Serial.println(my_TZ.dateTime());
     }
     else
@@ -85,12 +97,12 @@ void WifiScreen::update(unsigned long frame_millis, unsigned long prev_frame_mil
       this->wifi_result_millis = millis(); // wifi_connect() normally takes several seconds
       
       Serial.print("Wifi ");
-      Serial.print(wifi_ssid);
+      Serial.print(WIFI_SSID);
       Serial.println(" connection failed");
 
       const struct RGB888 red_clr = { .r = 192, .g = 22, .b = 0 };
       GlyphRenderer::drawSmallString("Wifi", 20, 0, red_clr);
-      GlyphRenderer::drawSmallString(wifi_ssid, ssid_x_pos, 8, yellow_clr);
+      GlyphRenderer::drawSmallString(WIFI_SSID, ssid_x_pos, 8, yellow_clr);
       GlyphRenderer::drawSmallString("connection", 1, 16, red_clr);
       GlyphRenderer::drawSmallString("failed", 14, 24, red_clr);
     }
@@ -99,7 +111,7 @@ void WifiScreen::update(unsigned long frame_millis, unsigned long prev_frame_mil
   }
 
   unsigned long after_wifi_result_millis = frame_millis - this->wifi_result_millis;
-  if(after_wifi_result_millis >= WIFI_RESULT_MILLIS)
+  if(after_wifi_result_millis >= WIFI_SCR_RESULT_MILLIS)
   {
     this->start_millis = this->wifi_result_millis = 0;
     app.switchToScreen(SCR_CLOCK);
@@ -107,9 +119,9 @@ void WifiScreen::update(unsigned long frame_millis, unsigned long prev_frame_mil
   }
 
   // Fade to black
-  if(after_wifi_result_millis >= WIFI_RESULT_MILLIS - 510)
+  if(after_wifi_result_millis >= WIFI_SCR_RESULT_MILLIS - 510)
   {
-    display.setBrightness((WIFI_RESULT_MILLIS - after_wifi_result_millis) >> 1);
+    display.setBrightness((WIFI_SCR_RESULT_MILLIS - after_wifi_result_millis) >> 1);
     return;
   }
 

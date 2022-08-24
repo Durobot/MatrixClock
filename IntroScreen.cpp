@@ -3,10 +3,10 @@
 #include <PxMatrix.h>
 
 #include "common.h"
+#include "config.h"
 #include "IntroScreen.h"
 #include "Application.h"
 
-#define INTO_MILLIS 3255
 
 extern Application app;
 extern PxMATRIX display;
@@ -70,7 +70,7 @@ void IntroScreen::update(unsigned long frame_millis, unsigned long prev_frame_mi
   else
   {
     unsigned long scr_life_millis = frame_millis - this->start_millis;
-    if(scr_life_millis >= INTO_MILLIS)
+    if(scr_life_millis >= INTO_SCR_MILLIS)
     {
       this->start_millis = 0;
       app.switchToScreen(SCR_WIFI);
@@ -78,8 +78,8 @@ void IntroScreen::update(unsigned long frame_millis, unsigned long prev_frame_mi
     }
 
     // Fade to black before we switch to the clock screen
-    if(scr_life_millis >= INTO_MILLIS - 255)
-      display.setBrightness(INTO_MILLIS - scr_life_millis);
+    if(scr_life_millis >= INTO_SCR_MILLIS - 255)
+      display.setBrightness(INTO_SCR_MILLIS - scr_life_millis);
   }
 
   /*

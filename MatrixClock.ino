@@ -3,6 +3,7 @@
 #include <ezTime.h>
 
 #include "common.h"
+#include "config.h"
 
 // Pins for LED MATRIX
 #ifdef ESP32
@@ -45,9 +46,6 @@ PxMATRIX display(SCREEN_WIDTH, SCREEN_HEIGHT, P_LAT, P_OE, P_A, P_B, P_C, P_D);
 // ------------------------------------------
 
 Application app;
-
-const char* wifi_ssid     = "MyWiFNetwork";
-const char* wifi_password = "WiFi Password";
 
 // ezTime
 Timezone my_TZ;
@@ -101,9 +99,9 @@ void display_update_enable(bool is_enable)
 bool wifi_connect()
 {
   Serial.print("Connecting to WiFi network ");
-  Serial.println(wifi_ssid);
+  Serial.println(WIFI_SSID);
 
-  WiFi.begin(wifi_ssid, wifi_password);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
   for(int i = 0; i < 8; i++) // 8 times 500 milliseconds = 4 seconds
   {
@@ -185,7 +183,6 @@ void setup()
   Serial.begin(115200);
 
   delay(10);
-  //wifi_connect();
   
   // Define your display layout here, e.g. 1/8 step, and optional SPI pins begin(row_pattern, CLK, MOSI, MISO, SS)
   display.begin(16);
@@ -200,7 +197,7 @@ void setup()
   // By default, ezTime is set to poll pool.ntp.org about every 30 minutes
   // (works if events() function is called periodically).
   // Let's change this interval to 1 hour.
-  setInterval(60 * 60);
+  setInterval(EZTIME_NTP_INTERVAL);
 }
 
 /*
