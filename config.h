@@ -20,5 +20,7 @@
 // Must be >= 510 to allow for fade to black.
 #define WIFI_SCR_RESULT_MILLIS 510
 
+// How many milliseconds digit transition frames are shown
+#define DIGIT_TRANS_MILLIS 75
 
 #endif

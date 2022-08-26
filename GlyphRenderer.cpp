@@ -1,3 +1,4 @@
+#include "stdint.h"
 #include <PxMatrix.h>
 
 #include "GlyphRenderer.h"
@@ -460,9 +461,17 @@ void GlyphRenderer::drawBigDigit(uint8_t digit, uint16_t x, uint16_t y, struct R
 {
     const uint16_t* digit_word = &big_digits[digit][0];
 
+    struct RGB888 cur_clr = clr;
+    struct RGB888 d_clr =
+    {
+      .r = clr.r / ((BIG_DIGIT_HEIGHT >> 1) + 1),
+      .g = clr.g / ((BIG_DIGIT_HEIGHT >> 1) + 1),
+      .b = clr.b / ((BIG_DIGIT_HEIGHT >> 1) + 1)
+    };
+
     uint16_t x_limit = x + BIG_DIGIT_WIDTH;
     uint16_t y_limit = y + BIG_DIGIT_HEIGHT - 1; // the 24th is empty, so we may skip it
-    for(; y < y_limit; y++) // Digit glyph lines
+    for(uint8_t i = 0; y < y_limit; y++, i++) // Glyph lines
     {
         uint16_t word = *digit_word++;
         for(uint16_t scr_x = x; scr_x < x_limit; scr_x++)
@@ -470,9 +479,17 @@ void GlyphRenderer::drawBigDigit(uint8_t digit, uint16_t x, uint16_t y, struct R
             if((word & 0x8000) == 0)
                 display.drawPixelRGB888(scr_x, y, 0, 0, 0);
             else
-                display.drawPixelRGB888(scr_x, y, clr.r, clr.g, clr.b);
+                display.drawPixelRGB888(scr_x, y, cur_clr.r, cur_clr.g, cur_clr.b);
 
             word <<= 1;
+        }
+        if(i == 11)
+          cur_clr = clr;
+        else
+        {
+          cur_clr.r -= d_clr.r;
+          cur_clr.g -= d_clr.g;
+          cur_clr.b -= d_clr.b;
         }
     }
 }
@@ -545,6 +562,15 @@ void GlyphRenderer::drawSmallTransDigit(uint8_t digit, uint8_t trans_idx, uint16
 
 void GlyphRenderer::drawSmallString(const char* str, uint16_t x, uint16_t y, struct RGB888 clr)
 {
-  for(; *str != NULL; str++, x += 6)
-    GlyphRenderer::drawSmallChar(*str, x, y, clr);
+  for(; *str != NULL; str++)
+    if(*str == ' ')
+    {
+      display.drawRect(x, y, SMALL_CHAR_WIDTH - 2, SMALL_CHAR_HEIGHT, 0);
+      x += (SMALL_CHAR_WIDTH - 2);
+    }
+    else
+    {
+      GlyphRenderer::drawSmallChar(*str, x, y, clr);
+      x += SMALL_CHAR_WIDTH;
+    }
 }
