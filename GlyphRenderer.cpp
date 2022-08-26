@@ -457,7 +457,7 @@ GlyphRenderer::GlyphRenderer()
 GlyphRenderer::~GlyphRenderer()
 {}
 
-void GlyphRenderer::drawBigDigit(uint8_t digit, uint16_t x, uint16_t y, struct RGB888 clr)
+void GlyphRenderer::drawBigDigit(uint8_t digit, int16_t x, int16_t y, struct RGB888 clr)
 {
     const uint16_t* digit_word = &big_digits[digit][0];
 
@@ -469,12 +469,12 @@ void GlyphRenderer::drawBigDigit(uint8_t digit, uint16_t x, uint16_t y, struct R
       .b = clr.b / ((BIG_DIGIT_HEIGHT >> 1) + 1)
     };
 
-    uint16_t x_limit = x + BIG_DIGIT_WIDTH;
-    uint16_t y_limit = y + BIG_DIGIT_HEIGHT - 1; // the 24th is empty, so we may skip it
+    int16_t x_limit = x + BIG_DIGIT_WIDTH;
+    int16_t y_limit = y + BIG_DIGIT_HEIGHT - 1; // the 24th is empty, so we may skip it
     for(uint8_t i = 0; y < y_limit; y++, i++) // Glyph lines
     {
         uint16_t word = *digit_word++;
-        for(uint16_t scr_x = x; scr_x < x_limit; scr_x++)
+        for(int16_t scr_x = x; scr_x < x_limit; scr_x++)
         {
             if((word & 0x8000) == 0)
                 display.drawPixelRGB888(scr_x, y, 0, 0, 0);
@@ -494,17 +494,17 @@ void GlyphRenderer::drawBigDigit(uint8_t digit, uint16_t x, uint16_t y, struct R
     }
 }
 
-void GlyphRenderer::drawBigTransDigit(uint8_t digit, uint8_t trans_idx, uint16_t x, uint16_t y, struct RGB888 clr)
+void GlyphRenderer::drawBigDigitTrans(uint8_t digit, uint8_t frame_idx, int16_t x, int16_t y, struct RGB888 clr)
 {
     // Skip digit & transition index validity checks
-    const uint16_t* digit_word = &big_dig_trans[(digit << 1) + trans_idx][0];
+    const uint16_t* digit_word = &big_dig_trans[(digit << 1) + frame_idx][0];
 
-    uint16_t x_limit = x + BIG_DIGIT_WIDTH;
-    uint16_t y_limit = y + BIG_DIGIT_HEIGHT - 1; // the 24th is empty, so we may skip it
+    int16_t x_limit = x + BIG_DIGIT_WIDTH;
+    int16_t y_limit = y + BIG_DIGIT_HEIGHT - 1; // the 24th is empty, so we may skip it
     for(; y < y_limit; y++) // Digit glyph lines, the 24th is empty, so we may skip it
     {
         uint16_t word = *digit_word++;
-        for(uint16_t scr_x = x; scr_x < x_limit; scr_x++)
+        for(int16_t scr_x = x; scr_x < x_limit; scr_x++)
         {
             if((word & 0x8000) == 0)
                 display.drawPixelRGB888(scr_x, y, 0, 0, 0);
@@ -538,10 +538,10 @@ void GlyphRenderer::drawSmallChar(char c, uint16_t x, uint16_t y, struct RGB888 
     }
 }
 
-void GlyphRenderer::drawSmallTransDigit(uint8_t digit, uint8_t trans_idx, uint16_t x, uint16_t y, struct RGB888 clr)
+void GlyphRenderer::drawSmallDigitTrans(uint8_t digit, uint8_t frame_idx, uint16_t x, uint16_t y, struct RGB888 clr)
 {
     // Skip digit & transition index validity checks
-    const uint8_t* char_byte = &small_dig_trans[(digit << 1) + trans_idx][0];
+    const uint8_t* char_byte = &small_dig_trans[(digit << 1) + frame_idx][0];
 
     uint16_t x_limit = x + SMALL_CHAR_WIDTH;
     uint16_t y_limit = y + SMALL_CHAR_HEIGHT - 1; // the 8th is empty, so we may skip it

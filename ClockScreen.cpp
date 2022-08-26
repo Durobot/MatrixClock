@@ -73,26 +73,20 @@ void ClockScreen::update(unsigned long frame_millis, unsigned long prev_frame_mi
       uint8_t sec_tens = sec / 10;
       if(sec_ones == 9)
       {
-        GlyphRenderer::drawSmallTransDigit(sec_tens, trans_idx, 52, 24, cyan_clr);
+        GlyphRenderer::drawSmallDigitTrans(sec_tens, trans_idx, SCREEN_WIDTH - 2 * SMALL_CHAR_WIDTH, BIG_DIGIT_HEIGHT, cyan_clr);
 
         if(sec_tens == 5) // 60th second ('59' is currently displayed) is about to end
         {
           uint8_t mins = my_TZ.minute();
           uint8_t min_ones = mins % 10;
           uint8_t min_tens = mins / 10;
-          GlyphRenderer::drawBigTransDigit(min_ones, trans_idx, 48, 0, green_clr);
+          GlyphRenderer::drawBigDigitTrans(min_ones, trans_idx, 48, 0, green_clr);
 
           if(min_ones == 9) // Next ten minutes is about to start
             GlyphRenderer::drawBigDigit(min_tens, 32, 0, green_clr);
         }
-        //Serial.print("Drawn transition for tens; trans_idx = ");
-        //Serial.print(trans_idx);
-        //Serial.print(", sec_tens = ");
-        //Serial.println(sec_tens);
-        //Serial.println("");
       }
-      GlyphRenderer::drawSmallTransDigit(sec_ones, trans_idx, 58, 24, cyan_clr);
-      //--GlyphRenderer::drawBigTransDigit(sec_ones, trans_idx, BIG_DIGIT_HEIGHT, 0, yellow_clr);
+      GlyphRenderer::drawSmallDigitTrans(sec_ones, trans_idx, SCREEN_WIDTH - SMALL_CHAR_WIDTH, BIG_DIGIT_HEIGHT, cyan_clr);
       this->sec_trans_frame_shown[trans_idx] = true;
     }
     return;
@@ -176,24 +170,24 @@ void ClockScreen::resetScreen()
 inline void ClockScreen::drawHourTens(uint8_t hr_tens)
 {
   if(hr_tens == 0) // Paint over the previous tens of hours
-    display.drawRect(0, 0, BIG_DIGIT_WIDTH, BIG_DIGIT_HEIGHT, 0);
+    display.drawRect(0, 0, BIG_DIGIT_WIDTH - 1, BIG_DIGIT_HEIGHT, 0);
   else
-    GlyphRenderer::drawBigDigit(hr_tens, 0, 0, yellow_clr);
+    GlyphRenderer::drawBigDigit(hr_tens, -1, 0, yellow_clr); // x == -1 to move the digit to the left, it's OK
 }
 
 inline void ClockScreen::drawHourOnes(uint8_t hr_ones)
 {
-  GlyphRenderer::drawBigDigit(hr_ones, BIG_DIGIT_WIDTH, 0, yellow_clr);
+  GlyphRenderer::drawBigDigit(hr_ones, BIG_DIGIT_WIDTH - 1, 0, yellow_clr);
 }
 
 inline void ClockScreen::drawMinutesTens(uint8_t min_tens)
 {
-  GlyphRenderer::drawBigDigit(min_tens, 2 * BIG_DIGIT_WIDTH, 0, green_clr);
+  GlyphRenderer::drawBigDigit(min_tens, 2 * BIG_DIGIT_WIDTH + 1, 0, green_clr);
 }
 
 inline void ClockScreen::drawMinutesOnes(uint8_t min_ones)
 {
-  GlyphRenderer::drawBigDigit(min_ones, 3 * BIG_DIGIT_WIDTH, 0, green_clr);
+  GlyphRenderer::drawBigDigit(min_ones, 3 * BIG_DIGIT_WIDTH + 1, 0, green_clr);
 }
 
 inline void ClockScreen::drawCalendar()

@@ -39,7 +39,7 @@ Ticker display_ticker;
 
 // This defines the 'on' time of the display is us. The larger this number,
 // the brighter the display. If too large the ESP will crash
-uint8_t display_draw_time = 20; //30-60 is usually fine
+uint8_t display_draw_time = 30; //30-60 is usually fine
 
 PxMATRIX display(SCREEN_WIDTH, SCREEN_HEIGHT, P_LAT, P_OE, P_A, P_B, P_C, P_D);
 
