@@ -20,8 +20,10 @@ public:
     // Draw a frame of transition (frame_idx is frame index) between two big digits
     static void drawBigDigitTrans(uint8_t digit, uint8_t frame_idx, int16_t x, int16_t y, struct RGB888 clr);
     static void drawSmallChar(char c, uint16_t x, uint16_t y, struct RGB888 clr);
-    // Draw a frame of transition (frame_idx is frame index) between two small digits
-    static void drawSmallDigitTrans(uint8_t digit, uint8_t frame_idx, uint16_t x, uint16_t y, struct RGB888 clr);
+    // Draw a frame of transition (frame_idx is frame index) between two small digits.
+    // trans_idx is transition index. Currently, only 5 has two transitions - 0 is 5->6 and 1 is 5->9.
+    // For all the other digits, trans_idx is ignored.
+    static void drawSmallDigitTrans(uint8_t digit, uint8_t trans_idx, uint8_t frame_idx, uint16_t x, uint16_t y, struct RGB888 clr);
     static void drawSmallString(const char* str, uint16_t x, uint16_t y, struct RGB888 clr);
 };
 

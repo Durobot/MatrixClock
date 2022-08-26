@@ -65,29 +65,33 @@ void ClockScreen::update(unsigned long frame_millis, unsigned long prev_frame_mi
   uint16_t eztime_millis = ms(); // 0 - 999
   if(eztime_millis >= 1000 - (DIGIT_TRANS_MILLIS << 1)) // Second is about to change
   {
-    uint8_t trans_idx = (eztime_millis >= 1000 - DIGIT_TRANS_MILLIS) ? 1 : 0;
-    if(!this->sec_trans_frame_shown[trans_idx]) // Show transition frames once
+    uint8_t frame_idx = (eztime_millis >= 1000 - DIGIT_TRANS_MILLIS) ? 1 : 0;
+    if(!this->sec_trans_frame_shown[frame_idx]) // Show transition frames once
     {
       uint8_t sec = my_TZ.second();
       uint8_t sec_ones = sec % 10;
       uint8_t sec_tens = sec / 10;
       if(sec_ones == 9)
       {
-        GlyphRenderer::drawSmallDigitTrans(sec_tens, trans_idx, SCREEN_WIDTH - 2 * SMALL_CHAR_WIDTH, BIG_DIGIT_HEIGHT, cyan_clr);
+        // 1 is transition index. If sec_tens == 5, it indicates that we want 5->0 transition, not 5->6.
+        // If sec_tens != 5, transition index is ignored.
+        GlyphRenderer::drawSmallDigitTrans(sec_tens, 1, frame_idx, SCREEN_WIDTH - 2 * SMALL_CHAR_WIDTH, BIG_DIGIT_HEIGHT, cyan_clr);
 
         if(sec_tens == 5) // 60th second ('59' is currently displayed) is about to end
         {
           uint8_t mins = my_TZ.minute();
           uint8_t min_ones = mins % 10;
           uint8_t min_tens = mins / 10;
-          GlyphRenderer::drawBigDigitTrans(min_ones, trans_idx, 48, 0, green_clr);
+          GlyphRenderer::drawBigDigitTrans(min_ones, frame_idx, 48, 0, green_clr);
 
           if(min_ones == 9) // Next ten minutes is about to start
             GlyphRenderer::drawBigDigit(min_tens, 32, 0, green_clr);
         }
       }
-      GlyphRenderer::drawSmallDigitTrans(sec_ones, trans_idx, SCREEN_WIDTH - SMALL_CHAR_WIDTH, BIG_DIGIT_HEIGHT, cyan_clr);
-      this->sec_trans_frame_shown[trans_idx] = true;
+      // 0 is transition index. If sec_ones == 5, it indicates that we want 5->6 transition, not 5->0.
+      // If sec_tens != 5, transition index is ignored.
+      GlyphRenderer::drawSmallDigitTrans(sec_ones, 0, frame_idx, SCREEN_WIDTH - SMALL_CHAR_WIDTH, BIG_DIGIT_HEIGHT, cyan_clr);
+      this->sec_trans_frame_shown[frame_idx] = true;
     }
     return;
   }
