@@ -20,7 +20,11 @@ private:
 
   //static void drawHrMinDay();
 
-  inline static void drawHourTens(uint8_t hr_tens);
+  // Draw tens of hours in ther standard position and color.
+  // lines_limit sets the limit of horizontal scanlines to draw, counting from the top.
+  // This parameter is used for emtpy space -> 1 animation, when 9 hours becomes 10.
+  // If lines_limit == 0, this limit is ignored, and all BIG_DIGIT_HEIGHT lines are rendered.
+  inline static void drawHourTens(uint8_t hr_tens, uint16_t lines_limit);
   inline static void drawHourOnes(uint8_t hr_ones);
   inline static void drawMinutesTens(uint8_t min_tens);
   inline static void drawMinutesOnes(uint8_t min_ones);

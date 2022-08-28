@@ -1,3 +1,4 @@
+#include "HardwareSerial.h"
 #include "stdint.h"
 #include <PxMatrix.h>
 
@@ -117,7 +118,7 @@ static const uint16_t big_digits[][BIG_DIGIT_HEIGHT] =
 // Transitions between 16x24 digits, 2 frames per transition
 static const uint16_t big_dig_trans[][BIG_DIGIT_HEIGHT] =
 {
-  // 0 - 1, #1
+  // 0 - 1, frame #1
   {
     0x07F0, 0x0FF8,
     0x1C1C, 0x1C1C, 0x1C1C, 0x1C1C, 0x1C1C, 0x1C1C, 0x1C1C, 0x1C1C, 0x1C1C, 0x1C1C,
@@ -125,7 +126,7 @@ static const uint16_t big_dig_trans[][BIG_DIGIT_HEIGHT] =
     0x0FF8, 0x07F0,
     0x0000
   },
-  // 0 - 1, #2
+  // 0 - 1, frame #2
   {
     0x07C0, 0x07E0,
     0x0360, 0x0360, 0x0360, 0x0360, 0x0360, 0x0360, 0x0360, 0x0360, 0x0360, 0x0360,
@@ -133,7 +134,7 @@ static const uint16_t big_dig_trans[][BIG_DIGIT_HEIGHT] =
     0x03E0, 0x01C0,
     0x0000
   },
-  // 1 - 2, #1
+  // 1 - 2, frame #1
   {
     0x07C0, 0x0FE0,
     0x0C60, 0x0060, 0x0060, 0x0060, 0x0060, 0x0060, 0x0060, 0x0060, 0x0060,
@@ -145,7 +146,7 @@ static const uint16_t big_dig_trans[][BIG_DIGIT_HEIGHT] =
     0x0FE0, 0x0FE0,
     0x0000
   },
-  // 1 - 2, #2
+  // 1 - 2, frame #2
   {
     0x0FF0, 0x1FF8,
     0x1818,
@@ -155,7 +156,7 @@ static const uint16_t big_dig_trans[][BIG_DIGIT_HEIGHT] =
     0x1FFC, 0x1FFC,
     0x0000
   },
-  // 2 - 3, #1
+  // 2 - 3, frame #1
   {
     0x1FF8, 0x3FFC, 0x700E, 0x700E,
     0x000E, 0x000E, 0x000E, 0x000E, 0x000E,
@@ -164,7 +165,7 @@ static const uint16_t big_dig_trans[][BIG_DIGIT_HEIGHT] =
     0x78FC, 0x78F8,
     0x0000
   },
-  // 2 - 3, #2
+  // 2 - 3, frame #2
   {
     0x1FF8, 0x3FFC, 0x700E, 0x700E,
     0x000E, 0x000E, 0x000E, 0x000E, 0x000E,
@@ -175,7 +176,7 @@ static const uint16_t big_dig_trans[][BIG_DIGIT_HEIGHT] =
     0x78FC, 0x78F8,
     0x0000
   },
-  // 3 - 4, #1
+  // 3 - 4, frame #1
   {
     0x1E78, 0x3E7C,
     0x700E, 0x700E, 0x700E, 0x700E,
@@ -185,7 +186,7 @@ static const uint16_t big_dig_trans[][BIG_DIGIT_HEIGHT] =
     0x0FFC, 0x0FF8,
     0x0000
   },
-  // 3 - 4, #2
+  // 3 - 4, frame #2
   {
     0x1818, 0x381C,
     0x700E, 0x700E, 0x700E, 0x700E, 0x700E, 0x700E, 0x700E,
@@ -195,7 +196,7 @@ static const uint16_t big_dig_trans[][BIG_DIGIT_HEIGHT] =
     0x00FC, 0x00F8,
     0x0000
   },
-  // 4 - 5, #1
+  // 4 - 5, frame #1
   {
     0x703E, 0x703E, 0x700E, 0x700E, 0x700E, 0x700E, 0x700E,
     0x7000, 0x7000, 0x7000,
@@ -204,7 +205,7 @@ static const uint16_t big_dig_trans[][BIG_DIGIT_HEIGHT] =
     0x007E, 0x007C,
     0x0000
   },
-  // 4 - 5, #2
+  // 4 - 5, frame #2
   {
     0x73FE, 0x73FE,
     0x700E, 0x700E,
@@ -214,7 +215,7 @@ static const uint16_t big_dig_trans[][BIG_DIGIT_HEIGHT] =
     0x0FFE, 0x0FFC,
     0x0000
   },
-  // 5 - 6, #1
+  // 5 - 6, frame #1
   {
     0x3FFC, 0x7FFE,
     0x7000, 0x7000, 0x7000, 0x7000, 0x7000, 0x7000, 0x7000,
@@ -224,7 +225,7 @@ static const uint16_t big_dig_trans[][BIG_DIGIT_HEIGHT] =
     0x701E, 0x3FFC, 0x1FF8,
     0x0000
   },
-  // 5 - 6, #2
+  // 5 - 6, frame #2
   {
     0x1FF8, 0x3FFC,
     0x7000, 0x7000, 0x7000, 0x7000, 0x7000, 0x7000, 0x7000,
@@ -235,7 +236,7 @@ static const uint16_t big_dig_trans[][BIG_DIGIT_HEIGHT] =
     0x3FFC, 0x1FF8,
     0x0000
   },
-  // 6 - 7, #1
+  // 6 - 7, frame #1
   {
     0x1FF8, 0x3FFC,
     0x700E, 0x700E, 0x700E, 0x700E, 0x700E, 0x700E,
@@ -244,7 +245,7 @@ static const uint16_t big_dig_trans[][BIG_DIGIT_HEIGHT] =
     0x4000,
     0x0000, 0x0000, 0x0000, 0x0000, 0x0000
   },
-  // 6 - 7, #2
+  // 6 - 7, frame #2
   {
     0x1FF8, 0x3FFC,
     0x700E, 0x700E, 0x700E, 0x700E, 0x700E, 0x600E,
@@ -253,7 +254,7 @@ static const uint16_t big_dig_trans[][BIG_DIGIT_HEIGHT] =
     0x0070, 0x0070, 0x0070,
     0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000
   },
-  // 7 - 8, #1
+  // 7 - 8, frame #1
   {
     0x1FF8, 0x3FFC,
     0x700E, 0x700E, 0x700E, 0x700E, 0x700E, 0x600E,
@@ -262,7 +263,7 @@ static const uint16_t big_dig_trans[][BIG_DIGIT_HEIGHT] =
     0x001C, 0x0038,
     0x0000
   },
-  // 7 - 8, #2
+  // 7 - 8, frame #2
   {
     0x1FF8, 0x3FFC,
     0x700E, 0x700E, 0x700E, 0x700E, 0x700E, 0x700E, 0x700E,
@@ -273,7 +274,7 @@ static const uint16_t big_dig_trans[][BIG_DIGIT_HEIGHT] =
     0x0FFC, 0x1FF8,
     0x0000
   },
-  // 8 - 9, #1
+  // 8 - 9, frame #1
   {
     0x1FF8, 0x3FFC,
     0x700E, 0x700E, 0x700E, 0x700E, 0x700E, 0x700E, 0x700E,
@@ -288,7 +289,7 @@ static const uint16_t big_dig_trans[][BIG_DIGIT_HEIGHT] =
     0x3FFC, 0x1FF8,
     0x0000
   },
-  // 8 - 9, #2
+  // 8 - 9, frame #2
   {
     0x1FF8, 0x3FFC,
     0x700E, 0x700E, 0x700E, 0x700E, 0x700E, 0x700E, 0x700E, 0x700E, 0x700E,
@@ -300,7 +301,7 @@ static const uint16_t big_dig_trans[][BIG_DIGIT_HEIGHT] =
     0x3FFC, 0x1FF8,
     0x0000
   },
-  // 9 - 0, #1
+  // 9 - 0, frame #1
   {
     0x1FF8, 0x3FFC,
     0x700E, 0x700E, 0x700E, 0x700E, 0x700E, 0x700E, 0x700E,
@@ -312,7 +313,7 @@ static const uint16_t big_dig_trans[][BIG_DIGIT_HEIGHT] =
     0x3FFC, 0x1FF8,
     0x0000
   },
-  // 9 - 0, #2
+  // 9 - 0, frame #2
   {
     0x1FF8, 0x3FFC,
     0x700E, 0x700E, 0x700E, 0x700E, 0x700E, 0x700E, 0x700E,
@@ -324,6 +325,79 @@ static const uint16_t big_dig_trans[][BIG_DIGIT_HEIGHT] =
     0x300E,
     0x700E, 0x700E,
     0x3FFC, 0x1FF8,
+    0x0000
+  },
+  // 3 - 0, frame #1
+  {
+    0x1FF8, 0x3FFC,
+    0x700E, 0x700E, 0x700E,
+    0x600E,
+    0x000E, 0x000E, 0x000E,
+    0x001E,
+    0x00FC, 0x00FC,
+    0x001E,
+    0x000E, 0x000E, 0x000E,
+    0x300E,
+    0x700E, 0x700E, 0x700E, 0x700E,
+    0x3FFC,
+    0x1FF8,
+    0x0000
+  },
+  // 3 - 0, frame #2
+  {
+    0x1FF8, 0x3FFC,
+    0x700E, 0x700E, 0x700E, 0x700E, 0x700E, 0x700E,
+    0x600E,
+    0x400E,
+    0x003C, 0x003C,
+    0x400E,
+    0x100E,
+    0x700E, 0x700E, 0x700E, 0x700E, 0x700E, 0x700E, 0x700E,
+    0x3FFC,
+    0x1FF8,
+    0x0000
+  },
+  // 5 - 0, frame #1
+  {
+    0x7FFE, 0x7FFE,
+    0x700E,
+    0x7006,
+    0x7002,
+    0x7000, 0x7000, 0x7000, 0x7000,
+    0x73C8,
+    0x73CC,
+    0x700E, 0x700E,
+    0x600E,
+    0x400E,
+    0x000E, 0x000E, 0x000E,
+    0x010E,
+    0x030E,
+    0x701E,
+    0x3FFC,
+    0x1FF8,
+    0x0000
+  },
+  // 5 - 0, frame #2
+  {
+    0x3FFC,
+    0x7FFE,
+    0x700E, 0x700E, 0x700E,
+    0x7006,
+    0x7002,
+    0x7000,
+    0x7008,
+    0x718C,
+    0x718E,
+    0x700E, 0x700E, 0x700E,
+    0x600E,
+    0x400E,
+    0x000E,
+    0x100E,
+    0x300E,
+    0x700E,
+    0x701E,
+    0x3FFC,
+    0x1FF8,
     0x0000
   }
 };
@@ -459,7 +533,7 @@ GlyphRenderer::GlyphRenderer()
 GlyphRenderer::~GlyphRenderer()
 {}
 
-void GlyphRenderer::drawBigDigit(uint8_t digit, int16_t x, int16_t y, struct RGB888 clr)
+void GlyphRenderer::drawBigDigit(uint8_t digit, int16_t x, int16_t y, uint16_t lines_limit, struct RGB888 clr)
 {
     const uint16_t* digit_word = &big_digits[digit][0];
 
@@ -472,7 +546,7 @@ void GlyphRenderer::drawBigDigit(uint8_t digit, int16_t x, int16_t y, struct RGB
     };
 
     int16_t x_limit = x + BIG_DIGIT_WIDTH;
-    int16_t y_limit = y + BIG_DIGIT_HEIGHT - 1; // the 24th is empty, so we may skip it
+    int16_t y_limit = (lines_limit == 0) ? y + BIG_DIGIT_HEIGHT - 1 : y + lines_limit; // the 24th is empty, so we may skip it
     for(uint8_t i = 0; y < y_limit; y++, i++) // Glyph lines
     {
         uint16_t word = *digit_word++;
@@ -496,10 +570,17 @@ void GlyphRenderer::drawBigDigit(uint8_t digit, int16_t x, int16_t y, struct RGB
     }
 }
 
-void GlyphRenderer::drawBigDigitTrans(uint8_t digit, uint8_t frame_idx, int16_t x, int16_t y, struct RGB888 clr)
+void GlyphRenderer::drawBigDigitTrans(uint8_t digit, uint8_t trans_idx, uint8_t frame_idx, int16_t x, int16_t y, struct RGB888 clr)
 {
     // Skip digit & transition index validity checks
-    const uint16_t* digit_word = &big_dig_trans[(digit << 1) + frame_idx][0];
+    const uint16_t* digit_word;
+    if(digit == 3 && trans_idx == 1)
+      digit_word = &big_dig_trans[9 * 2 + 2 + frame_idx][0];
+    else
+      if(digit == 5 && trans_idx == 1)
+        digit_word = &big_dig_trans[9 * 2 + 4 + frame_idx][0];
+      else
+        digit_word = &big_dig_trans[(digit << 1) + frame_idx][0];
 
     int16_t x_limit = x + BIG_DIGIT_WIDTH;
     int16_t y_limit = y + BIG_DIGIT_HEIGHT - 1; // the 24th is empty, so we may skip it
@@ -576,4 +657,14 @@ void GlyphRenderer::drawSmallString(const char* str, uint16_t x, uint16_t y, str
       GlyphRenderer::drawSmallChar(*str, x, y, clr);
       x += SMALL_CHAR_WIDTH;
     }
+}
+
+void GlyphRenderer::paintRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, struct RGB888 clr)
+{
+  uint16_t x_limit = x + w;
+  uint16_t y_limit = y + h;
+
+  for(uint16_t yy = y; yy < y_limit; yy++)
+    for(uint16_t xx = x; xx < x_limit; xx++)
+      display.drawPixelRGB888(xx, yy, clr.r, clr.g, clr.b);
 }

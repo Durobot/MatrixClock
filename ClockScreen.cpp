@@ -13,6 +13,7 @@ extern Application app;
 extern PxMATRIX display;
 extern Timezone my_TZ;
 
+const struct RGB888 black_clr   = { .r =   0, .g =   0, .b =   0 };
 const struct RGB888 yellow_clr  = { .r = 128, .g = 128, .b =   0 };
 const struct RGB888 green_clr   = { .r =   0, .g = 128, .b =   0 };
 const struct RGB888 magenta_clr = { .r = 128, .g =   0, .b = 128 };
@@ -35,6 +36,9 @@ void ClockScreen::update(unsigned long frame_millis, unsigned long prev_frame_mi
     display.clearDisplay();
     display.setBrightness(0); // Set the brightness of the panel (max is 255)
 
+// REMOVE
+my_TZ.setTime(23, 59, 50, 1, 1, 2018);
+
     // Initialize hour, minutes and calendar_str
     if(this->hour == 255)
       this->hour = my_TZ.hour();
@@ -48,7 +52,7 @@ void ClockScreen::update(unsigned long frame_millis, unsigned long prev_frame_mi
       //strncpy(this->wkday, my_TZ.dateTime("l").c_str(), sizeof this->wkday - 1);
 
     // Draw hour, minutes and calendar_str for the first time
-    ClockScreen::drawHourTens(this->hour / 10);
+    ClockScreen::drawHourTens(this->hour / 10, 0);
     ClockScreen::drawHourOnes(this->hour % 10);
     ClockScreen::drawMinutesTens(this->mins / 10);
     ClockScreen::drawMinutesOnes(this->mins % 10);
@@ -68,26 +72,64 @@ void ClockScreen::update(unsigned long frame_millis, unsigned long prev_frame_mi
     uint8_t frame_idx = (eztime_millis >= 1000 - DIGIT_TRANS_MILLIS) ? 1 : 0;
     if(!this->sec_trans_frame_shown[frame_idx]) // Show transition frames once
     {
-      uint8_t sec = my_TZ.second();
-      uint8_t sec_ones = sec % 10;
-      uint8_t sec_tens = sec / 10;
+      uint8_t ezt_sec = my_TZ.second();
+      uint8_t sec_ones = ezt_sec % 10;
+
       if(sec_ones == 9)
       {
+        uint8_t sec_tens = ezt_sec / 10;
+
         // 1 is transition index. If sec_tens == 5, it indicates that we want 5->0 transition, not 5->6.
         // If sec_tens != 5, transition index is ignored.
         GlyphRenderer::drawSmallDigitTrans(sec_tens, 1, frame_idx, SCREEN_WIDTH - 2 * SMALL_CHAR_WIDTH, BIG_DIGIT_HEIGHT, cyan_clr);
 
         if(sec_tens == 5) // 60th second ('59' is currently displayed) is about to end
         {
-          uint8_t mins = my_TZ.minute();
-          uint8_t min_ones = mins % 10;
-          uint8_t min_tens = mins / 10;
-          GlyphRenderer::drawBigDigitTrans(min_ones, frame_idx, 48, 0, green_clr);
+          uint8_t ezt_mins = my_TZ.minute();
+          uint8_t min_ones = ezt_mins % 10;
+
+          // 2nd argument == 0 is transition index. If min_ones == 5, it indicates that we want 5->6 transition, not 5->0.
+          // If min_ones != 5, transition index is ignored.
+          GlyphRenderer::drawBigDigitTrans(min_ones, 0, frame_idx, 3 * BIG_DIGIT_WIDTH + 1, 0, green_clr);
 
           if(min_ones == 9) // Next ten minutes is about to start
-            GlyphRenderer::drawBigDigit(min_tens, 32, 0, green_clr);
-        }
-      }
+          {
+            uint8_t min_tens = ezt_mins / 10;
+            // 2nd argument == 1 is transition index. If min_tens == 5, it indicates that we want 5->0 transition, not 5->6.
+            // If min_tens != 5, transition index is ignored.
+            GlyphRenderer::drawBigDigitTrans(min_tens, 1, frame_idx, 2 * BIG_DIGIT_WIDTH + 1, 0, green_clr);
+
+            if(min_tens == 5) // Next hour is about to start
+            {
+              uint8_t ezt_hr = my_TZ.hour();
+              uint8_t hr_ones = ezt_hr % 10;
+
+              // 2nd argument == 0 is transition index.
+              // If hr_ones == 5, it indicates that we want 5->6 transition, not 5->0.
+              // If hr_ones is not 3 or 5, transition index is ignored.
+              GlyphRenderer::drawBigDigitTrans(hr_ones, 0, frame_idx, BIG_DIGIT_WIDTH - 1, 0, yellow_clr);
+
+              uint8_t hr_tens = ezt_hr / 10;
+              if(hr_ones == 9)
+              {
+                if(hr_tens == 0) // 9 hours -> 10 hours
+                  ClockScreen::drawHourTens(1, (frame_idx + 1) * BIG_DIGIT_HEIGHT / 3); // Empty space -> 1 animation
+                else // 19 hours -> 20 hours
+                  // 2nd argument == 0 is transition index. Since hr_tens is not 2 or 5 it is ignored.
+                  GlyphRenderer::drawBigDigitTrans(hr_tens, 0, frame_idx, BIG_DIGIT_WIDTH - 1, 0, yellow_clr);
+              }
+              else
+                if(hr_tens == 2 && hr_ones == 3) // 2 -> Empty space animation
+                  GlyphRenderer::paintRect(0, // x
+                                           0, // y
+                                           BIG_DIGIT_WIDTH - 1, // width
+                                           (frame_idx + 1) * BIG_DIGIT_HEIGHT / 3, // height
+                                           black_clr); // color
+            } // if(min_tens == 5)
+          } // if(min_ones == 9)
+        } // if(sec_tens == 5)
+      } // if(sec_ones == 9)
+
       // 0 is transition index. If sec_ones == 5, it indicates that we want 5->6 transition, not 5->0.
       // If sec_tens != 5, transition index is ignored.
       GlyphRenderer::drawSmallDigitTrans(sec_ones, 0, frame_idx, SCREEN_WIDTH - SMALL_CHAR_WIDTH, BIG_DIGIT_HEIGHT, cyan_clr);
@@ -136,7 +178,7 @@ void ClockScreen::update(unsigned long frame_millis, unsigned long prev_frame_mi
       if(hr_ones == 0 || ezt_hr != this->hour)
       {
         uint8_t hr_tens = ezt_hr / 10;
-        ClockScreen::drawHourTens(hr_tens);
+        ClockScreen::drawHourTens(hr_tens, 0);
       }
       this->hour = ezt_hr;
     }
@@ -171,27 +213,31 @@ void ClockScreen::resetScreen()
 }
 */
 
-inline void ClockScreen::drawHourTens(uint8_t hr_tens)
+inline void ClockScreen::drawHourTens(uint8_t hr_tens, uint16_t lines_limit)
 {
   if(hr_tens == 0) // Paint over the previous tens of hours
-    display.drawRect(0, 0, BIG_DIGIT_WIDTH - 1, BIG_DIGIT_HEIGHT, 0);
+    GlyphRenderer::paintRect(0, // x
+                             0, // y
+                             BIG_DIGIT_WIDTH - 1, // width
+                             BIG_DIGIT_HEIGHT - 1, // height
+                             black_clr); // color
   else
-    GlyphRenderer::drawBigDigit(hr_tens, -1, 0, yellow_clr); // x == -1 to move the digit to the left, it's OK
+    GlyphRenderer::drawBigDigit(hr_tens, -1, 0, lines_limit, yellow_clr); // x == -1 to move the digit to the left, it's OK
 }
 
 inline void ClockScreen::drawHourOnes(uint8_t hr_ones)
 {
-  GlyphRenderer::drawBigDigit(hr_ones, BIG_DIGIT_WIDTH - 1, 0, yellow_clr);
+  GlyphRenderer::drawBigDigit(hr_ones, BIG_DIGIT_WIDTH - 1, 0, 0, yellow_clr);
 }
 
 inline void ClockScreen::drawMinutesTens(uint8_t min_tens)
 {
-  GlyphRenderer::drawBigDigit(min_tens, 2 * BIG_DIGIT_WIDTH + 1, 0, green_clr);
+  GlyphRenderer::drawBigDigit(min_tens, 2 * BIG_DIGIT_WIDTH + 1, 0, 0, green_clr);
 }
 
 inline void ClockScreen::drawMinutesOnes(uint8_t min_ones)
 {
-  GlyphRenderer::drawBigDigit(min_ones, 3 * BIG_DIGIT_WIDTH + 1, 0, green_clr);
+  GlyphRenderer::drawBigDigit(min_ones, 3 * BIG_DIGIT_WIDTH + 1, 0, 0, green_clr);
 }
 
 inline void ClockScreen::drawCalendar()

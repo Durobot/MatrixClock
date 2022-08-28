@@ -74,7 +74,9 @@ void IntroScreen::update(unsigned long frame_millis, unsigned long prev_frame_mi
     if(scr_life_millis >= INTO_SCR_MILLIS)
     {
       this->resetScreen();
-      app.switchToScreen(SCR_WIFI);
+// REMOVE
+app.switchToScreen(SCR_CLOCK);
+      //app.switchToScreen(SCR_WIFI);
       return;
     }
 
