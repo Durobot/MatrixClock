@@ -7,6 +7,8 @@
 #include "IntroScreen.h"
 #include "Application.h"
 
+// Fadeout slope, see https://www.mathsisfun.com/equation_of_line.html
+const float intro_fadeout_m = -(float)INTRO_WIFI_BRIGHTNESS / (float)INTO_FADEOUT_MILLIS;
 
 extern Application app;
 extern PxMATRIX display;
@@ -53,20 +55,11 @@ IntroScreen::~IntroScreen()
 
 void IntroScreen::update(unsigned long frame_millis, unsigned long prev_frame_millis)
 {
-  /*
-  Serial.print(F("Hello, I'm IntroScreen "));
-  Serial.print(this->id);
-  Serial.print(F(", frame_millis = "));
-  Serial.print(frame_millis);
-  Serial.print(F(", prev_frame_millis = "));
-  Serial.println(prev_frame_millis);
-  */
-
   if(this->start_millis == 0)
   {
     this->start_millis = frame_millis; // Initialize
     display.clearDisplay();
-    display.setBrightness(255); // Set the brightness of the panel (max is 255)
+    display.setBrightness(INTRO_WIFI_BRIGHTNESS); // Set the brightness of the panel (max is 255)
   }
   else
   {
@@ -74,24 +67,15 @@ void IntroScreen::update(unsigned long frame_millis, unsigned long prev_frame_mi
     if(scr_life_millis >= INTO_SCR_MILLIS)
     {
       this->resetScreen();
-// REMOVE
-app.switchToScreen(SCR_CLOCK);
-      //app.switchToScreen(SCR_WIFI);
+      app.switchToScreen(SCR_WIFI);
       return;
     }
 
-    // Fade to black before we switch to the clock screen
-    if(scr_life_millis >= INTO_SCR_MILLIS - 255)
-      display.setBrightness(INTO_SCR_MILLIS - scr_life_millis);
+    // Fade to black before we switch to the clock screen.
+    // see https://www.mathsisfun.com/equation_of_line.html
+    if(scr_life_millis >= INTO_SCR_MILLIS - INTO_FADEOUT_MILLIS)
+      display.setBrightness(intro_fadeout_m * (scr_life_millis - (INTO_SCR_MILLIS - INTO_FADEOUT_MILLIS)) + INTRO_WIFI_BRIGHTNESS);
   }
-
-  /*
-  Serial.print("update( ");
-  Serial.print(frame_millis);
-  Serial.print(" , ");
-  Serial.print(prev_frame_millis);
-  Serial.println(" )");
-  */
 
   // -- Draw the lines --
   //

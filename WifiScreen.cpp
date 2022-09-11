@@ -9,7 +9,6 @@
 #include "WifiScreen.h"
 #include "GlyphRenderer.h"
 
-
 extern Application app;
 extern PxMATRIX display;
 //extern const char* wifi_ssid;
@@ -17,6 +16,9 @@ extern Timezone my_TZ;
 
 bool wifi_connect(); // In MatrixClock.ino
 void display_update_enable(bool is_enable);
+
+// Fadeout slope, see https://www.mathsisfun.com/equation_of_line.html
+const float wifi_fadeout_m = -(float)INTRO_WIFI_BRIGHTNESS / (float)WIFI_FADEOUT_MILLIS;
 
 WifiScreen::WifiScreen(unsigned int scr_id) : Screen(scr_id)
 {}
@@ -26,20 +28,11 @@ WifiScreen::~WifiScreen()
 
 void WifiScreen::update(unsigned long frame_millis, unsigned long prev_frame_millis)
 {
-  /*
-  Serial.print(F("Hello, I'm WifiScreen "));
-  Serial.print(this->id);
-  Serial.print(F(", frame_millis = "));
-  Serial.print(frame_millis);
-  Serial.print(F(", prev_frame_millis = "));
-  Serial.println(prev_frame_millis);
-  */
-
   if(this->start_millis == 0)
   {
     this->start_millis = frame_millis; // Initialize
     display.clearDisplay();
-    display.setBrightness(255); // Set the brightness of the panel (max is 255)
+    display.setBrightness(INTRO_WIFI_BRIGHTNESS); // Set the brightness of the panel (max is 255)
 
     // -- Attempt WiFi connection --
     //
@@ -108,7 +101,7 @@ void WifiScreen::update(unsigned long frame_millis, unsigned long prev_frame_mil
     }
 
     return;
-  }
+  } // if(this->start_millis == 0)
 
   unsigned long after_wifi_result_millis = frame_millis - this->wifi_result_millis;
   if(WiFi.isConnected())
@@ -121,9 +114,11 @@ void WifiScreen::update(unsigned long frame_millis, unsigned long prev_frame_mil
     }
 
     // Fade to black
-    if(after_wifi_result_millis >= WIFI_SCR_RESULT_MILLIS - 510)
+    if(after_wifi_result_millis >= WIFI_SCR_RESULT_MILLIS - WIFI_FADEOUT_MILLIS)
     {
-      display.setBrightness((WIFI_SCR_RESULT_MILLIS - after_wifi_result_millis) >> 1);
+      // see https://www.mathsisfun.com/equation_of_line.html
+      display.setBrightness(wifi_fadeout_m * (after_wifi_result_millis - (WIFI_SCR_RESULT_MILLIS - WIFI_FADEOUT_MILLIS))
+        + INTRO_WIFI_BRIGHTNESS);
       return;
     }
   }
@@ -137,20 +132,11 @@ void WifiScreen::update(unsigned long frame_millis, unsigned long prev_frame_mil
     }
 
     // Fade to black
-    if(after_wifi_result_millis >= WIFI_SCR_RESULT_MILLIS + 2000 - 510)
+    if(after_wifi_result_millis >= WIFI_SCR_RESULT_MILLIS + 2000 - WIFI_FADEOUT_MILLIS)
     {
-      display.setBrightness((WIFI_SCR_RESULT_MILLIS + 2000 - after_wifi_result_millis) >> 1);
+      display.setBrightness(wifi_fadeout_m * (after_wifi_result_millis - (WIFI_SCR_RESULT_MILLIS + 2000 - WIFI_FADEOUT_MILLIS))
+        + INTRO_WIFI_BRIGHTNESS);
       return;
     }
-
-    // Fade in
-    if(after_wifi_result_millis <= 255)
-    {
-      display.setBrightness(after_wifi_result_millis);
-      return;
-    }
-
-    // In case we miss the mark when fading in
-    display.setBrightness(255);
   }
 }

@@ -2,6 +2,7 @@
 #define _INTROSCREEN_H_
 
 #include "common.h"
+#include "config.h"
 #include "Screen.h"
 
 #define LINE_COUNT 7

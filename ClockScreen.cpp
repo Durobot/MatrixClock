@@ -13,6 +13,34 @@ extern Application app;
 extern PxMATRIX display;
 extern Timezone my_TZ;
 
+// -- Dimming constants --
+#define DIMMING_TRANS_START_SEC (BRIGHT_END_HOUR * (60 * 60) + BRIGHT_END_MINUTE * 60 + BRIGHT_END_SECOND)
+#define DIMMING_TRANS_END_SEC   (DIM_START_HOUR * (60 * 60)  + DIM_START_MINUTE * 60  + DIM_START_SECOND)
+
+#if DIMMING_TRANS_START_SEC == DIMMING_TRANS_END_SEC
+#  error "Dim period must start at least 1 second after the end of Bright period!"
+#endif
+
+// Fadeout (dimming) slope, see https://www.mathsisfun.com/equation_of_line.html
+const float dimming_m = (DIMMING_TRANS_END_SEC > DIMMING_TRANS_START_SEC) ?
+  (float)(DIM_BRIGHTNESS - NORMAL_BRIGHTNESS) / (float)(DIMMING_TRANS_END_SEC - DIMMING_TRANS_START_SEC) :
+  (float)(DIM_BRIGHTNESS - NORMAL_BRIGHTNESS) / (float)(DIMMING_TRANS_END_SEC + (24 * 60 * 60) - DIMMING_TRANS_START_SEC);
+// ----------------------
+
+// - Brightening constants -
+#define BRIGHTEN_TRANS_START_SEC (DIM_END_HOUR * (60 * 60)      + DIM_END_MINUTE * 60      + DIM_END_SECOND)
+#define BRIGHTEN_TRANS_END_SEC   (BRIGHT_START_HOUR * (60 * 60) + BRIGHT_START_MINUTE * 60 + BRIGHT_START_SECOND)
+
+#if BRIGHTEN_TRANS_START_SEC == BRIGHTEN_TRANS_END_SEC
+#  error "Bright period must start at least 1 second after the end of Dim period!"
+#endif
+
+// Brightening slope, see https://www.mathsisfun.com/equation_of_line.html
+const float brighten_m = (BRIGHTEN_TRANS_END_SEC > BRIGHTEN_TRANS_START_SEC) ?
+  (float)(NORMAL_BRIGHTNESS - DIM_BRIGHTNESS) / (float)(BRIGHTEN_TRANS_END_SEC - BRIGHTEN_TRANS_START_SEC) :
+  (float)(NORMAL_BRIGHTNESS - DIM_BRIGHTNESS) / (float)(BRIGHTEN_TRANS_END_SEC + (24 * 60 * 60) - BRIGHTEN_TRANS_START_SEC);
+// ------------------------
+
 const struct RGB888 black_clr   = { .r =   0, .g =   0, .b =   0 };
 const struct RGB888 yellow_clr  = { .r = 128, .g = 128, .b =   0 };
 const struct RGB888 green_clr   = { .r =   0, .g = 128, .b =   0 };
@@ -34,10 +62,14 @@ void ClockScreen::update(unsigned long frame_millis, unsigned long prev_frame_mi
   {
     this->start_millis = frame_millis;
     display.clearDisplay();
-    display.setBrightness(0); // Set the brightness of the panel (max is 255)
+    // Set the initial brightness of the panel (max is 255)
+    // for the fade in process
+    this->setBright(0);
+    // Calculate target brightness of the fade in
+    this->fadein_target_bright = ClockScreen::calcCurBrightness();
 
-// REMOVE
-my_TZ.setTime(23, 59, 50, 1, 1, 2018);
+// DEBUGGING CODE, REMOVE
+//my_TZ.setTime(21, 59, 25, 1, 1, 2018);
 
     // Initialize hour, minutes and calendar_str
     if(this->hour == 255)
@@ -46,10 +78,7 @@ my_TZ.setTime(23, 59, 50, 1, 1, 2018);
     if(this->mins == 255)
       this->mins = my_TZ.minute();
 
-    if(this->calendar_str[0] == '\0')
-      strncpy(this->calendar_str, my_TZ.dateTime("d-m-Y j").c_str(), sizeof this->calendar_str - 1);
-      //strncpy(this->wkday, my_TZ.dateTime("M j,D").c_str(), sizeof this->wkday - 1);
-      //strncpy(this->wkday, my_TZ.dateTime("l").c_str(), sizeof this->wkday - 1);
+    this->regenCalendarStr();
 
     // Draw hour, minutes and calendar_str for the first time
     ClockScreen::drawHourTens(this->hour / 10, 0);
@@ -63,8 +92,8 @@ my_TZ.setTime(23, 59, 50, 1, 1, 2018);
 
   unsigned long scr_life_millis = frame_millis - this->start_millis;
   // Fade in
-  if(scr_life_millis <= 255)
-    display.setBrightness(scr_life_millis);
+  if(scr_life_millis <= this->fadein_target_bright)
+    this->setBright(scr_life_millis);
 
   uint16_t eztime_millis = ms(); // 0 - 999
   if(eztime_millis >= 1000 - (DIGIT_TRANS_MILLIS << 1)) // Second is about to change
@@ -81,7 +110,7 @@ my_TZ.setTime(23, 59, 50, 1, 1, 2018);
 
         // 1 is transition index. If sec_tens == 5, it indicates that we want 5->0 transition, not 5->6.
         // If sec_tens != 5, transition index is ignored.
-        GlyphRenderer::drawSmallDigitTrans(sec_tens, 1, frame_idx, SCREEN_WIDTH - 2 * SMALL_CHAR_WIDTH, BIG_DIGIT_HEIGHT, cyan_clr);
+        GlyphRenderer::drawSmallDigitTrans(sec_tens, 1, frame_idx, SCREEN_WIDTH - 2 * SMALL_CHAR_WIDTH, BIG_DIGIT_HEIGHT + 1, cyan_clr);
 
         if(sec_tens == 5) // 60th second ('59' is currently displayed) is about to end
         {
@@ -132,7 +161,7 @@ my_TZ.setTime(23, 59, 50, 1, 1, 2018);
 
       // 0 is transition index. If sec_ones == 5, it indicates that we want 5->6 transition, not 5->0.
       // If sec_tens != 5, transition index is ignored.
-      GlyphRenderer::drawSmallDigitTrans(sec_ones, 0, frame_idx, SCREEN_WIDTH - SMALL_CHAR_WIDTH, BIG_DIGIT_HEIGHT, cyan_clr);
+      GlyphRenderer::drawSmallDigitTrans(sec_ones, 0, frame_idx, SCREEN_WIDTH - SMALL_CHAR_WIDTH, BIG_DIGIT_HEIGHT + 1, cyan_clr);
       this->sec_trans_frame_shown[frame_idx] = true;
     }
     return;
@@ -144,10 +173,16 @@ my_TZ.setTime(23, 59, 50, 1, 1, 2018);
     this->sec_trans_frame_shown[0] =
       this->sec_trans_frame_shown[1] = false;
 
+    // Set brightness according to normal / dim brighness cycle.
+    // Since we only take seconds into account when calculating this
+    // brightness, calling calcCurBrightness() more than once a second
+    // would be a waste.
+    this->setBright(ClockScreen::calcCurBrightness());
+
     // Draw seconds
     uint8_t ezt_sec = my_TZ.second();
-    GlyphRenderer::drawSmallChar(ezt_sec / 10 + '0', SCREEN_WIDTH - 2 * SMALL_CHAR_WIDTH, BIG_DIGIT_HEIGHT, cyan_clr);
-    GlyphRenderer::drawSmallChar(ezt_sec % 10 + '0', SCREEN_WIDTH - SMALL_CHAR_WIDTH,     BIG_DIGIT_HEIGHT, cyan_clr);
+    GlyphRenderer::drawSmallChar(ezt_sec / 10 + '0', SCREEN_WIDTH - 2 * SMALL_CHAR_WIDTH, BIG_DIGIT_HEIGHT + 1, cyan_clr);
+    GlyphRenderer::drawSmallChar(ezt_sec % 10 + '0', SCREEN_WIDTH - SMALL_CHAR_WIDTH,     BIG_DIGIT_HEIGHT + 1, cyan_clr);
 
     uint8_t ezt_mins = my_TZ.minute();
     // Minute has just changed either because seconds counter is 0,
@@ -179,39 +214,93 @@ my_TZ.setTime(23, 59, 50, 1, 1, 2018);
       {
         uint8_t hr_tens = ezt_hr / 10;
         ClockScreen::drawHourTens(hr_tens, 0);
+        // New day has just started
+        if(ezt_hr == 0)
+        {
+          this->regenCalendarStr();
+          ClockScreen::drawCalendar();
+        }
       }
       this->hour = ezt_hr;
     }
   } // if(this->sec_trans_frame_shown[0])
 }
 
-/*
-void ClockScreen::drawHrMinDay()
+// static
+uint8_t ClockScreen::calcCurBrightness()
 {
-    // Hours
-    uint8_t hr = my_TZ.hour();
-    if(hr > 9)
-      GlyphRenderer::drawBigDigit(hr / 10, 0, 0, yellow_clr);
-    //
-    GlyphRenderer::drawBigDigit(hr % 10, 16, 0, yellow_clr);
+  uint8_t hr = my_TZ.hour();
+  uint8_t min = my_TZ.minute();
+  uint8_t sec = my_TZ.second();
+  uint32_t day_sec = hr * (60 * 60) + min * 60 + sec;
 
-    // Minutes
-    uint8_t min = my_TZ.minute();
-    GlyphRenderer::drawBigDigit(min / 10, 32, 0, green_clr);
-    GlyphRenderer::drawBigDigit(min % 10, 48, 0, green_clr);
+  // Normal brightness period
+  if(ClockScreen::isSecondBetween(day_sec, BRIGHTEN_TRANS_END_SEC, DIMMING_TRANS_START_SEC))
+    return NORMAL_BRIGHTNESS;
 
-    // calendar_str
-    GlyphRenderer::drawSmallString(my_TZ.dateTime("l").c_str(), 0, 24, grey_clr);
+  // Dim brightness period
+  if(ClockScreen::isSecondBetween(day_sec, DIMMING_TRANS_END_SEC, BRIGHTEN_TRANS_START_SEC))
+    return DIM_BRIGHTNESS;
+
+  // See two-point form of straight line equation in
+  // https://www.vedantu.com/maths/equation-of-a-straight-line
+  if(ClockScreen::isSecondBetween(day_sec, DIMMING_TRANS_START_SEC, DIMMING_TRANS_END_SEC)) // In dimming transition?
+    if(DIMMING_TRANS_START_SEC > DIMMING_TRANS_END_SEC && // Dimming period crossing midnight
+       day_sec < DIMMING_TRANS_START_SEC) // and we're currently in the next day
+      return dimming_m * (day_sec + (60 * 60 * 24) - DIMMING_TRANS_START_SEC) + NORMAL_BRIGHTNESS + 0.5;
+    else
+      return dimming_m * (day_sec - DIMMING_TRANS_START_SEC) + NORMAL_BRIGHTNESS + 0.5;
+
+  if(ClockScreen::isSecondBetween(day_sec, BRIGHTEN_TRANS_START_SEC, BRIGHTEN_TRANS_END_SEC)) // In brightening transition?
+    if(BRIGHTEN_TRANS_START_SEC > BRIGHTEN_TRANS_END_SEC && // Brightening period crossing midnight
+       day_sec < BRIGHTEN_TRANS_START_SEC) // and we're currently in the next day
+      return brighten_m * (day_sec + (60 * 60 * 24) - BRIGHTEN_TRANS_START_SEC) + DIM_BRIGHTNESS + 0.5;
+    else
+      return brighten_m * (day_sec - BRIGHTEN_TRANS_START_SEC) + DIM_BRIGHTNESS + 0.5;
+
+  // Should not get here
+  return 255;
 }
 
-void ClockScreen::resetScreen()
+// static
+bool ClockScreen::isSecondBetween(uint32_t sec, uint32_t day_sec_1, uint32_t day_sec_2)
 {
-  this->hour =
-    this->mins = 255;
+  if(day_sec_1 <= day_sec_2) // [...day_sec_1---day_sec_2...]
+  {
+    if(sec >= day_sec_1 && sec <= day_sec_2)
+      return true;
+  }
+  else // [---day_sec_2...day_sec_1---]
+    if(sec <= day_sec_2 || sec >= day_sec_1)
+      return true;
 
-  this->calendar_str[0] = '\0';
+  return false;
 }
-*/
+
+void ClockScreen::setBright(uint8_t bright)
+{
+  uint8_t cur_bright = app.getBright();
+  if(bright == cur_bright) // No change? (unlikely)
+    return;
+
+  app.setBright(bright);
+
+  // Are we crossing the threshold?
+  if((cur_bright <= LARGE_DIGIT_GRADIENT_THRESHOLD && bright > LARGE_DIGIT_GRADIENT_THRESHOLD) ||
+     (cur_bright > LARGE_DIGIT_GRADIENT_THRESHOLD && bright <= LARGE_DIGIT_GRADIENT_THRESHOLD))
+  {
+    // Redraw hour and minutes, since 
+    ClockScreen::drawHourTens(this->hour / 10, 0);
+    ClockScreen::drawHourOnes(this->hour % 10);
+    ClockScreen::drawMinutesTens(this->mins / 10);
+    ClockScreen::drawMinutesOnes(this->mins % 10);
+  }
+}
+
+inline void ClockScreen::regenCalendarStr()
+{
+  strncpy(this->calendar_str, my_TZ.dateTime("d-m D").c_str(), sizeof this->calendar_str - 1);
+}
 
 inline void ClockScreen::drawHourTens(uint8_t hr_tens, uint16_t lines_limit)
 {
@@ -242,5 +331,5 @@ inline void ClockScreen::drawMinutesOnes(uint8_t min_ones)
 
 inline void ClockScreen::drawCalendar()
 {
-  GlyphRenderer::drawSmallString(this->calendar_str, 0, 24, grey_clr);
+  GlyphRenderer::drawSmallString(this->calendar_str, 0, BIG_DIGIT_HEIGHT + 1, grey_clr);
 }

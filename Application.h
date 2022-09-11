@@ -1,3 +1,4 @@
+#include "stdint.h"
 #ifndef _APPLICATION_H_
 #define _APPLICATION_H_
 
@@ -16,6 +17,10 @@ private:
     Screen* screens[3] = { new IntroScreen(SCR_INTRO), new WifiScreen(SCR_WIFI), new ClockScreen(SCR_CLOCK) };
     Screen* active_screen = screens[0];
 
+    // Current screen brightness. Since pxMatrix can't report current screen
+    // brightness, we have to save it here.
+    uint8_t cur_brightness = 0;
+
 public:
     Application();
     ~Application();
@@ -23,6 +28,12 @@ public:
     void update();
     Screen* findScreen(unsigned int scr_id);
     bool switchToScreen(unsigned int scr_id);
+
+    // Set current brightness.
+    // Saves set brightness, so that it can be retrieved later.
+    void setBright(uint8_t bright);
+    // Get current brightness
+    uint8_t getBright();
 };
 
 #endif

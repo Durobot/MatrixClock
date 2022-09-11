@@ -1,6 +1,9 @@
 #include <Arduino.h>
+#include <PxMatrix.h>
 
 #include "Application.h"
+
+extern PxMATRIX display;
 
 Application::Application()
 {}
@@ -37,4 +40,15 @@ bool Application::switchToScreen(unsigned int scr_id)
 
     this->active_screen = new_scr;
     return true;
+}
+
+void Application::setBright(uint8_t bright)
+{
+    display.setBrightness(bright);
+    this->cur_brightness = bright;
+}
+
+uint8_t Application::getBright()
+{
+    return this->cur_brightness;
 }

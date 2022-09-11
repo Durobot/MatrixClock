@@ -34,6 +34,8 @@ Ticker display_ticker;
 
 #endif
 
+#define DISPLAY_ROW_PATTERN 16
+
 #include "Application.h"
 
 
@@ -189,7 +191,7 @@ void setup()
   delay(10);
   
   // Define your display layout here, e.g. 1/8 step, and optional SPI pins begin(row_pattern, CLK, MOSI, MISO, SS)
-  display.begin(16);
+  display.begin(DISPLAY_ROW_PATTERN);
   display.flushDisplay();
   display.setTextWrap(false);
 

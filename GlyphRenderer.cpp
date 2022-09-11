@@ -3,8 +3,10 @@
 #include <PxMatrix.h>
 
 #include "GlyphRenderer.h"
+#include "Application.h"
 
 extern PxMATRIX display; // In MatrixClock.ino
+extern Application app;
 
 // 16x24 numeric characters, 1 bit per pixel,
 // so 2 bytes is 1 row
@@ -537,6 +539,7 @@ void GlyphRenderer::drawBigDigit(uint8_t digit, int16_t x, int16_t y, uint16_t l
 {
     const uint16_t* digit_word = &big_digits[digit][0];
 
+    bool do_gradient = app.getBright() > LARGE_DIGIT_GRADIENT_THRESHOLD;
     struct RGB888 cur_clr = clr;
     struct RGB888 d_clr =
     {
@@ -559,14 +562,16 @@ void GlyphRenderer::drawBigDigit(uint8_t digit, int16_t x, int16_t y, uint16_t l
 
             word <<= 1;
         }
-        if(i == 11)
-          cur_clr = clr;
-        else
-        {
-          cur_clr.r -= d_clr.r;
-          cur_clr.g -= d_clr.g;
-          cur_clr.b -= d_clr.b;
-        }
+
+        if(do_gradient)
+          if(i == 11)
+            cur_clr = clr;
+          else
+          {
+            cur_clr.r -= d_clr.r;
+            cur_clr.g -= d_clr.g;
+            cur_clr.b -= d_clr.b;
+          }
     }
 }
 
