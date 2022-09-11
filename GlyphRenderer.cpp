@@ -564,7 +564,7 @@ void GlyphRenderer::drawBigDigit(uint8_t digit, int16_t x, int16_t y, uint16_t l
         }
 
         if(do_gradient)
-          if(i == 11)
+          if(i == 10)
             cur_clr = clr;
           else
           {
@@ -587,9 +587,18 @@ void GlyphRenderer::drawBigDigitTrans(uint8_t digit, uint8_t trans_idx, uint8_t 
       else
         digit_word = &big_dig_trans[(digit << 1) + frame_idx][0];
 
+    bool do_gradient = app.getBright() > LARGE_DIGIT_GRADIENT_THRESHOLD;
+    struct RGB888 cur_clr = clr;
+    struct RGB888 d_clr =
+    {
+      .r = clr.r / ((BIG_DIGIT_HEIGHT >> 1) + 1),
+      .g = clr.g / ((BIG_DIGIT_HEIGHT >> 1) + 1),
+      .b = clr.b / ((BIG_DIGIT_HEIGHT >> 1) + 1)
+    };
+
     int16_t x_limit = x + BIG_DIGIT_WIDTH;
     int16_t y_limit = y + BIG_DIGIT_HEIGHT - 1; // the 24th is empty, so we may skip it
-    for(; y < y_limit; y++) // Digit glyph lines, the 24th is empty, so we may skip it
+    for(uint8_t i = 0; y < y_limit; y++, i++) // Digit glyph lines, the 24th is empty, so we may skip it
     {
         uint16_t word = *digit_word++;
         for(int16_t scr_x = x; scr_x < x_limit; scr_x++)
@@ -597,10 +606,20 @@ void GlyphRenderer::drawBigDigitTrans(uint8_t digit, uint8_t trans_idx, uint8_t 
             if((word & 0x8000) == 0)
                 display.drawPixelRGB888(scr_x, y, 0, 0, 0);
             else
-                display.drawPixelRGB888(scr_x, y, clr.r, clr.g, clr.b);
+                display.drawPixelRGB888(scr_x, y, cur_clr.r, cur_clr.g, cur_clr.b);
 
             word <<= 1;
         }
+
+        if(do_gradient)
+          if(i == 10)
+            cur_clr = clr;
+          else
+          {
+            cur_clr.r -= d_clr.r;
+            cur_clr.g -= d_clr.g;
+            cur_clr.b -= d_clr.b;
+          }
     }
 }
 
