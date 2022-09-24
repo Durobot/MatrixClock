@@ -1,5 +1,3 @@
-#include "HardwareSerial.h"
-#include "stdint.h"
 #include <PxMatrix.h>
 
 #include "GlyphRenderer.h"
