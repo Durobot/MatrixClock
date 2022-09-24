@@ -1,4 +1,3 @@
-#include "stdint.h"
 #ifndef _CLOCKSCREEN_H_
 #define _CLOCKSCREEN_H_
 
