@@ -66,17 +66,41 @@ void WifiScreen::update(unsigned long frame_millis, unsigned long prev_frame_mil
       display.drawPixelRGB888(61, 30, grey_clr.r, grey_clr.g, grey_clr.b);
 
       // -- ezTime --
+      // Provide official timezone names
+      // https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+      // setLocation() gets Posix TZ string from timezoned.rop.nl ,
+      // which is ezTime's own service.
+      if(!my_TZ.setLocation(F(TZ_OLSON)))
+      {
+        Serial.println("Could not get Posix time string from timezoned.rop.nl:");
+        Serial.println(errorString().c_str());
+        Serial.println("Trying again..");
+        if(!my_TZ.setLocation(F(TZ_OLSON)))
+        {
+          Serial.println("Failed again:");
+          Serial.println(errorString().c_str());
+          Serial.println("Setting default Posix string:");
+          Serial.println(TZ_POSIX);
+          my_TZ.setPosix(F(TZ_POSIX));
+        }
+        else
+        {
+          Serial.print("Worked this time. Posix time string from timezoned.rop.nl = ");
+          Serial.println(my_TZ.getPosix().c_str());
+        }
+      }
+      else
+      {
+        Serial.print("Posix time string from timezoned.rop.nl = ");
+        Serial.println(my_TZ.getPosix().c_str());
+      }
+
       // Uncomment the line below to see what it does behind the scenes
       // setDebug(INFO);
       waitForSync(); // Shouldn't take long :)
 
       this->wifi_result_millis = millis(); // wifi_connect() + waitForSync() normally take several seconds
 
-      // Provide official timezone names
-      // https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-      // setLocation() gets Posix TZ string from timezoned.rop.nl ,
-      // which is ezTime's own service.
-      my_TZ.setLocation(F(TZ_OLSON));
       // Setting the Posix string directly removes dependency on timezoned.rop.nl,
       // but if TZ definition changes, we're stuck with the old definition.
       //my_TZ.setPosix(F("EET-2EEST,M3.5.0,M10.5.0/3"));

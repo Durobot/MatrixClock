@@ -9,6 +9,9 @@
 // For the list, see https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 // For the explanation, see https://developer.ibm.com/articles/au-aix-posix/
 #define TZ_OLSON "Europe/Chisinau"
+// Default Posix time zone string, in case we could not receive it
+// from timezoned.rop.nl
+#define TZ_POSIX "EET-2EEST,M3.5.0,M10.5.0/3"
 // Seconds between NTP (time sync) requests
 #define EZTIME_NTP_INTERVAL (60 * 60)
 
