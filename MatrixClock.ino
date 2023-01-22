@@ -189,6 +189,9 @@ void setup()
   Serial.begin(115200);
 
   delay(10);
+
+  Serial.print("ESP Board MAC Address:  ");
+  Serial.println(WiFi.macAddress());
   
   // Define your display layout here, e.g. 1/8 step, and optional SPI pins begin(row_pattern, CLK, MOSI, MISO, SS)
   display.begin(DISPLAY_ROW_PATTERN);
