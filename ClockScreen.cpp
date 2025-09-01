@@ -78,7 +78,7 @@ const struct RGB888 grey1_clr      = { .r =  64, .g =  64, .b =  64 };
 const struct RGB888 grey2_clr      = { .r = 128, .g = 128, .b = 128 };
 const struct RGB888 grey3_clr      = { .r = 192, .g = 192, .b = 192 };
 const struct RGB888 grey4_clr      = { .r = 255, .g = 255, .b = 255 };
-#define white_clr   grey4_clr
+const struct RGB888 white_clr      = { .r = 255, .g = 255, .b = 255 };
 
 const struct RGB888 special_hour_purple_clr = { .r = 171, .g =  14, .b = 199 };
 
