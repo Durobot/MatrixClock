@@ -1,3 +1,10 @@
+/*
+ * Build for Wemos Lolin32 (CPU frequency 240 MHz).
+ * Compiles with ESP32 platform by Espressif v2.0.x
+ * Does not compile with version 3.x
+ */
+
+#include <soc/gpio_struct.h> // For PxMatrix
 #include <PxMatrix.h>
 #include <WiFi.h>
 #include <ezTime.h>
@@ -85,7 +92,8 @@ void display_update_enable(bool is_enable)
 #ifdef ESP32
   if(is_enable)
   {
-    timer = timerBegin(0, 80, true);
+    timer = timerBegin(0, 80, true); // Old version of esp32 platform (v2.0.x)
+    //timer = timerBegin(1000000); //(80000000); // New version of esp32 platform (x3.x - doesn't work)
     timerAttachInterrupt(timer, &display_updater, true);
     timerAlarmWrite(timer, 2000, true);
     timerAlarmEnable(timer);

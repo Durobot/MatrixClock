@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <soc/gpio_struct.h> // For PxMatrix
 #include <PxMatrix.h>
 #include <ezTime.h>
 
@@ -40,12 +41,57 @@ const float brighten_m = (BRIGHTEN_TRANS_END_SEC > BRIGHTEN_TRANS_START_SEC) ?
   (float)(NORMAL_BRIGHTNESS - DIM_BRIGHTNESS) / (float)(BRIGHTEN_TRANS_END_SEC + (24 * 60 * 60) - BRIGHTEN_TRANS_START_SEC);
 // ------------------------
 
-const struct RGB888 black_clr   = { .r =   0, .g =   0, .b =   0 };
-const struct RGB888 yellow_clr  = { .r = 128, .g = 128, .b =   0 };
-const struct RGB888 green_clr   = { .r =   0, .g = 128, .b =   0 };
-const struct RGB888 magenta_clr = { .r = 128, .g =   0, .b = 128 };
-const struct RGB888 cyan_clr    = { .r =   0, .g = 128, .b = 128 };
-const struct RGB888 grey_clr    = { .r =  64, .g =  64, .b =  64 };
+const struct RGB888 black_clr      = { .r =   0, .g =   0, .b =   0 };
+const struct RGB888 yellow1_clr    = { .r =  64, .g =  64, .b =   0 };
+const struct RGB888 yellow2_clr    = { .r = 128, .g = 128, .b =   0 };
+const struct RGB888 yellow3_clr    = { .r = 192, .g = 192, .b =   0 };
+const struct RGB888 yellow4_clr    = { .r = 255, .g = 255, .b =   0 };
+const struct RGB888 green1_clr     = { .r =   0, .g =  64, .b =   0 };
+const struct RGB888 green2_clr     = { .r =   0, .g = 128, .b =   0 };
+const struct RGB888 green3_clr     = { .r =   0, .g = 192, .b =   0 };
+const struct RGB888 green4_clr     = { .r =   0, .g = 255, .b =   0 };
+const struct RGB888 blue1_clr      = { .r =   0, .g =   0, .b =  64 };
+const struct RGB888 blue2_clr      = { .r =   0, .g =   0, .b = 128 };
+const struct RGB888 blue3_clr      = { .r =   0, .g =   0, .b = 192 };
+const struct RGB888 blue4_clr      = { .r =   0, .g =   0, .b = 255 };
+const struct RGB888 red1_clr       = { .r =  64, .g =   0, .b =   0 };
+const struct RGB888 red2_clr       = { .r = 128, .g =   0, .b =   0 };
+const struct RGB888 red3_clr       = { .r = 192, .g =   0, .b =   0 };
+const struct RGB888 red4_clr       = { .r = 255, .g =   0, .b =   0 };
+const struct RGB888 magenta1_clr   = { .r =  64, .g =   0, .b =  64 };
+const struct RGB888 magenta2_clr   = { .r = 128, .g =   0, .b = 128 };
+const struct RGB888 magenta3_clr   = { .r = 192, .g =   0, .b = 192 };
+const struct RGB888 magenta4_clr   = { .r = 255, .g =   0, .b = 255 };
+const struct RGB888 l_magenta1_clr = { .r =  64, .g =  32, .b =  64 };
+const struct RGB888 l_magenta2_clr = { .r = 128, .g =  48, .b = 128 };
+const struct RGB888 l_magenta3_clr = { .r = 192, .g =  64, .b = 192 };
+const struct RGB888 l_magenta4_clr = { .r = 255, .g =  96, .b = 255 };
+const struct RGB888 cyan1_clr      = { .r =   0, .g =  64, .b =  64 };
+const struct RGB888 cyan2_clr      = { .r =   0, .g = 128, .b = 128 };
+const struct RGB888 cyan3_clr      = { .r =   0, .g = 192, .b = 192 };
+const struct RGB888 cyan4_clr      = { .r =   0, .g = 255, .b = 255 };
+const struct RGB888 l_cyan1_clr    = { .r =  32, .g =  64, .b =  64 };
+const struct RGB888 l_cyan2_clr    = { .r =  48, .g = 128, .b = 128 };
+const struct RGB888 l_cyan3_clr    = { .r =  64, .g = 192, .b = 192 };
+const struct RGB888 l_cyan4_clr    = { .r =  96, .g = 255, .b = 255 };
+const struct RGB888 grey1_clr      = { .r =  64, .g =  64, .b =  64 };
+const struct RGB888 grey2_clr      = { .r = 128, .g = 128, .b = 128 };
+const struct RGB888 grey3_clr      = { .r = 192, .g = 192, .b = 192 };
+const struct RGB888 grey4_clr      = { .r = 255, .g = 255, .b = 255 };
+#define white_clr   grey4_clr;
+
+const struct RGB888 special_hour_purple_clr = { .r = 171, .g =  14, .b = 199 };
+
+/*
+#define COLR_HOUR     yellow2_clr
+#define COLR_MIN      green2_clr
+#define COLR_CALENDAR grey1_clr
+#define COLR_SEC      cyan2_clr
+*/
+#define COLR_HOUR     special_hour_purple_clr
+#define COLR_MIN      cyan3_clr
+#define COLR_CALENDAR yellow2_clr
+#define COLR_SEC      grey2_clr
 
 ClockScreen::ClockScreen(unsigned int scr_id) : Screen(scr_id)
 {
@@ -109,7 +155,7 @@ void ClockScreen::update(unsigned long frame_millis, unsigned long prev_frame_mi
 
         // 1 is transition index. If sec_tens == 5, it indicates that we want 5->0 transition, not 5->6.
         // If sec_tens != 5, transition index is ignored.
-        GlyphRenderer::drawSmallDigitTrans(sec_tens, 1, frame_idx, SCREEN_WIDTH - 2 * SMALL_CHAR_WIDTH, BIG_DIGIT_HEIGHT + 1, cyan_clr);
+        GlyphRenderer::drawSmallDigitTrans(sec_tens, 1, frame_idx, SCREEN_WIDTH - 2 * SMALL_CHAR_WIDTH, BIG_DIGIT_HEIGHT + 1, COLR_SEC);
 
         if(sec_tens == 5) // 60th second ('59' is currently displayed) is about to end
         {
@@ -118,14 +164,14 @@ void ClockScreen::update(unsigned long frame_millis, unsigned long prev_frame_mi
 
           // 2nd argument == 0 is transition index. If min_ones == 5, it indicates that we want 5->6 transition, not 5->0.
           // If min_ones != 5, transition index is ignored.
-          GlyphRenderer::drawBigDigitTrans(min_ones, 0, frame_idx, 3 * BIG_DIGIT_WIDTH + 1, 0, green_clr);
+          GlyphRenderer::drawBigDigitTrans(min_ones, 0, frame_idx, 3 * BIG_DIGIT_WIDTH + 1, 0, COLR_MIN);
 
           if(min_ones == 9) // Next ten minutes is about to start
           {
             uint8_t min_tens = ezt_mins / 10;
             // 2nd argument == 1 is transition index. If min_tens == 5, it indicates that we want 5->0 transition, not 5->6.
             // If min_tens != 5, transition index is ignored.
-            GlyphRenderer::drawBigDigitTrans(min_tens, 1, frame_idx, 2 * BIG_DIGIT_WIDTH + 1, 0, green_clr);
+            GlyphRenderer::drawBigDigitTrans(min_tens, 1, frame_idx, 2 * BIG_DIGIT_WIDTH + 1, 0, COLR_MIN);
 
             if(min_tens == 5) // Next hour is about to start
             {
@@ -135,7 +181,7 @@ void ClockScreen::update(unsigned long frame_millis, unsigned long prev_frame_mi
               // 2nd argument == 0 is transition index.
               // If hr_ones == 5, it indicates that we want 5->6 transition, not 5->0.
               // If hr_ones is not 3 or 5, transition index is ignored.
-              GlyphRenderer::drawBigDigitTrans(hr_ones, 0, frame_idx, BIG_DIGIT_WIDTH - 1, 0, yellow_clr);
+              GlyphRenderer::drawBigDigitTrans(hr_ones, 0, frame_idx, BIG_DIGIT_WIDTH - 1, 0, COLR_HOUR);
 
               uint8_t hr_tens = ezt_hr / 10;
               if(hr_ones == 9)
@@ -144,7 +190,7 @@ void ClockScreen::update(unsigned long frame_millis, unsigned long prev_frame_mi
                   ClockScreen::drawHourTens(1, (frame_idx + 1) * BIG_DIGIT_HEIGHT / 3); // Empty space -> 1 animation
                 else // 19 hours -> 20 hours
                   // 2nd argument == 0 is transition index. Since hr_tens is not 2 or 5 it is ignored.
-                  GlyphRenderer::drawBigDigitTrans(hr_tens, 0, frame_idx, BIG_DIGIT_WIDTH - 1, 0, yellow_clr);
+                  GlyphRenderer::drawBigDigitTrans(hr_tens, 0, frame_idx, BIG_DIGIT_WIDTH - 1, 0, COLR_HOUR);
               }
               else
                 if(hr_tens == 2 && hr_ones == 3) // 2 -> Empty space animation
@@ -160,7 +206,7 @@ void ClockScreen::update(unsigned long frame_millis, unsigned long prev_frame_mi
 
       // 0 is transition index. If sec_ones == 5, it indicates that we want 5->6 transition, not 5->0.
       // If sec_tens != 5, transition index is ignored.
-      GlyphRenderer::drawSmallDigitTrans(sec_ones, 0, frame_idx, SCREEN_WIDTH - SMALL_CHAR_WIDTH, BIG_DIGIT_HEIGHT + 1, cyan_clr);
+      GlyphRenderer::drawSmallDigitTrans(sec_ones, 0, frame_idx, SCREEN_WIDTH - SMALL_CHAR_WIDTH, BIG_DIGIT_HEIGHT + 1, COLR_SEC);
       this->sec_trans_frame_shown[frame_idx] = true;
     }
     return;
@@ -180,8 +226,8 @@ void ClockScreen::update(unsigned long frame_millis, unsigned long prev_frame_mi
 
     // Draw seconds
     uint8_t ezt_sec = my_TZ.second();
-    GlyphRenderer::drawSmallChar(ezt_sec / 10 + '0', SCREEN_WIDTH - 2 * SMALL_CHAR_WIDTH, BIG_DIGIT_HEIGHT + 1, cyan_clr);
-    GlyphRenderer::drawSmallChar(ezt_sec % 10 + '0', SCREEN_WIDTH - SMALL_CHAR_WIDTH,     BIG_DIGIT_HEIGHT + 1, cyan_clr);
+    GlyphRenderer::drawSmallChar(ezt_sec / 10 + '0', SCREEN_WIDTH - 2 * SMALL_CHAR_WIDTH, BIG_DIGIT_HEIGHT + 1, COLR_SEC);
+    GlyphRenderer::drawSmallChar(ezt_sec % 10 + '0', SCREEN_WIDTH - SMALL_CHAR_WIDTH,     BIG_DIGIT_HEIGHT + 1, COLR_SEC);
 
     uint8_t ezt_mins = my_TZ.minute();
     // Minute has just changed either because seconds counter is 0,
@@ -310,25 +356,25 @@ inline void ClockScreen::drawHourTens(uint8_t hr_tens, uint16_t lines_limit)
                              BIG_DIGIT_HEIGHT - 1, // height
                              black_clr); // color
   else
-    GlyphRenderer::drawBigDigit(hr_tens, -1, 0, lines_limit, yellow_clr); // x == -1 to move the digit to the left, it's OK
+    GlyphRenderer::drawBigDigit(hr_tens, -1, 0, lines_limit, COLR_HOUR); // x == -1 to move the digit to the left, it's OK
 }
 
 inline void ClockScreen::drawHourOnes(uint8_t hr_ones)
 {
-  GlyphRenderer::drawBigDigit(hr_ones, BIG_DIGIT_WIDTH - 1, 0, 0, yellow_clr);
+  GlyphRenderer::drawBigDigit(hr_ones, BIG_DIGIT_WIDTH - 1, 0, 0, COLR_HOUR);
 }
 
 inline void ClockScreen::drawMinutesTens(uint8_t min_tens)
 {
-  GlyphRenderer::drawBigDigit(min_tens, 2 * BIG_DIGIT_WIDTH + 1, 0, 0, green_clr);
+  GlyphRenderer::drawBigDigit(min_tens, 2 * BIG_DIGIT_WIDTH + 1, 0, 0, COLR_MIN);
 }
 
 inline void ClockScreen::drawMinutesOnes(uint8_t min_ones)
 {
-  GlyphRenderer::drawBigDigit(min_ones, 3 * BIG_DIGIT_WIDTH + 1, 0, 0, green_clr);
+  GlyphRenderer::drawBigDigit(min_ones, 3 * BIG_DIGIT_WIDTH + 1, 0, 0, COLR_MIN);
 }
 
 inline void ClockScreen::drawCalendar()
 {
-  GlyphRenderer::drawSmallString(this->calendar_str, 0, BIG_DIGIT_HEIGHT + 1, grey_clr);
+  GlyphRenderer::drawSmallString(this->calendar_str, 0, BIG_DIGIT_HEIGHT + 1, COLR_CALENDAR);
 }

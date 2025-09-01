@@ -3,7 +3,7 @@
 
 // SSID (name) and password of your WiFi network
 #define WIFI_SSID     "MyWiFNetwork"
-#define WIFI_PASSWORD "WiFi Password"
+#define WIFI_PASSWORD "WiFi_Password"
 
 // Olson format time zone.
 // For the list, see https://en.wikipedia.org/wiki/List_of_tz_database_time_zones

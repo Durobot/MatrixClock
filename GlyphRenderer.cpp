@@ -1,3 +1,4 @@
+#include <soc/gpio_struct.h> // For PxMatrix
 #include <PxMatrix.h>
 
 #include "GlyphRenderer.h"
