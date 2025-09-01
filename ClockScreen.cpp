@@ -78,7 +78,7 @@ const struct RGB888 grey1_clr      = { .r =  64, .g =  64, .b =  64 };
 const struct RGB888 grey2_clr      = { .r = 128, .g = 128, .b = 128 };
 const struct RGB888 grey3_clr      = { .r = 192, .g = 192, .b = 192 };
 const struct RGB888 grey4_clr      = { .r = 255, .g = 255, .b = 255 };
-#define white_clr   grey4_clr;
+#define white_clr   grey4_clr
 
 const struct RGB888 special_hour_purple_clr = { .r = 171, .g =  14, .b = 199 };
 
@@ -88,10 +88,18 @@ const struct RGB888 special_hour_purple_clr = { .r = 171, .g =  14, .b = 199 };
 #define COLR_CALENDAR grey1_clr
 #define COLR_SEC      cyan2_clr
 */
+
 #define COLR_HOUR     special_hour_purple_clr
 #define COLR_MIN      cyan3_clr
 #define COLR_CALENDAR yellow2_clr
 #define COLR_SEC      grey2_clr
+
+/*
+#define COLR_HOUR     white_clr
+#define COLR_MIN      green4_clr
+#define COLR_CALENDAR white_clr
+#define COLR_SEC      cyan4_clr
+*/
 
 ClockScreen::ClockScreen(unsigned int scr_id) : Screen(scr_id)
 {
